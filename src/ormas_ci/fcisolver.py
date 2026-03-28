@@ -480,9 +480,12 @@ class ORMASFCISolver(lib.StreamObject):
             for k, i in enumerate(idx):
                 v0[i, k] = 1.0
 
+        sigma_engine = self._sigma_einsum
+        assert sigma_engine is not None
+
         def sigma_1d(ci_1d):
             ci_2d = self._ci_1d_to_2d(ci_1d)
-            sigma_2d = self._sigma_einsum.sigma(ci_2d)
+            sigma_2d = sigma_engine.sigma(ci_2d)
             return self._ci_2d_to_1d(sigma_2d)
 
         def precond(r, e):
