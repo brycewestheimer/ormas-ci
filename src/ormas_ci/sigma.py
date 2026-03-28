@@ -45,13 +45,13 @@ def _build_single_excitation_matrix(unique_strings, norb):
     for i, s in enumerate(unique_strings):
         string_to_idx[int(s)] = i
 
-    E = np.zeros((norb, norb, n_str, n_str))
+    e_mat = np.zeros((norb, norb, n_str, n_str))
 
     # Diagonal: E[p,p,a,a] = n_p (occupation number)
     for a_idx in range(n_str):
         s = int(unique_strings[a_idx])
         for p in bits_to_indices(s):
-            E[p, p, a_idx, a_idx] = 1.0
+            e_mat[p, p, a_idx, a_idx] = 1.0
 
     # Off-diagonal: single excitations q -> p
     for a_idx in range(n_str):
@@ -68,9 +68,9 @@ def _build_single_excitation_matrix(unique_strings, norb):
                 t_idx = string_to_idx.get(s_target)
                 if t_idx is not None:
                     phase = compute_phase(s, p, q)
-                    E[p, q, t_idx, a_idx] = phase
+                    e_mat[p, q, t_idx, a_idx] = phase
 
-    return E
+    return e_mat
 
 
 class SigmaEinsum:
@@ -145,7 +145,7 @@ class SigmaEinsum:
         sigma += np.einsum('pqib,pqjb->ij', temp_a, self._eri_E_beta, optimize=True)
 
         # --- Alpha-alpha two-electron contribution (factor 0.5) ---
-        # sigma_aa[a',b'] = 0.5 * sum_{pqrs} eri[p,q,r,s] * sum_{a''} E^a[p,q,a',a''] * E^a[r,s,a'',a] * ci[a,b']
+        # sigma_aa = 0.5 * eri[pqrs] * E^a[pq,a',a''] * E^a[rs,a'',a] * ci[a,b']
         # Step 1: temp_aa[p,q,a'',b'] = sum_a eri_E_alpha[p,q,a'',a] * ci[a,b']
         temp_aa = np.einsum('pqij,jk->pqik', self._eri_E_alpha, ci_2d, optimize=True)
         # Step 2: sigma_aa[a',b'] = 0.5 * sum_{pq,a''} E_alpha[p,q,a',a''] * temp_aa[p,q,a'',b']

@@ -52,11 +52,11 @@ try:
         PauliSequenceMapper,
     )
     from qdk_chemistry.data import Structure
-    from qdk_chemistry.data.time_evolution.controlled_time_evolution import (
-        ControlledTimeEvolutionUnitary,
-    )
     from qdk_chemistry.data.qubit_hamiltonian import (
         filter_and_group_pauli_ops_from_wavefunction,
+    )
+    from qdk_chemistry.data.time_evolution.controlled_time_evolution import (
+        ControlledTimeEvolutionUnitary,
     )
     from qdk_chemistry.plugins.pyscf.scf_solver import PyscfScfSolver
 

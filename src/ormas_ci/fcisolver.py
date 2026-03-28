@@ -35,6 +35,7 @@ from pyscf.fci import direct_spin1 as _direct_spin1
 from pyscf.fci import selected_ci as _selected_ci
 from scipy.sparse.linalg import LinearOperator, eigsh
 
+from ormas_ci.davidson import davidson
 from ormas_ci.determinants import (
     build_determinant_list,
     casci_determinant_count,
@@ -45,7 +46,6 @@ from ormas_ci.rdm import make_rdm1 as _make_rdm1
 from ormas_ci.rdm import make_rdm1s as _make_rdm1s
 from ormas_ci.rdm import make_rdm12 as _make_rdm12
 from ormas_ci.rdm import make_rdm12s as _make_rdm12s
-from ormas_ci.davidson import davidson
 from ormas_ci.sigma import SigmaEinsum
 from ormas_ci.solver import solve_ci
 from ormas_ci.subspaces import ORMASConfig
