@@ -70,7 +70,7 @@ config = ORMASConfig(
 The classic RAS partitioning:
 
 ```python
-from ormas_ci import RASConfig
+from pyscf.ormas_ci import RASConfig
 
 ras = RASConfig(
     ras1_orbitals=[0, 1, 2],       # Mostly occupied

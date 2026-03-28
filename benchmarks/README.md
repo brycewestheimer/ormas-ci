@@ -63,7 +63,7 @@ the active-space Hamiltonian because QDK's active-space selectors do
 not yet support unrestricted orbitals. The integrals are from the
 target system; only the orbital metadata object is a model container.
 
-Requires QDK/Chemistry: `pip install ormas-ci[qdk]`
+Requires QDK/Chemistry: `pip install pyscf-ormas-ci[qdk]`
 
 ### Model Systems
 

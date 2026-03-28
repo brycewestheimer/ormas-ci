@@ -15,7 +15,7 @@ This is the most common source of bugs in determinant-based CI codes.
 
 import numpy as np
 
-from ormas_ci.utils import bits_to_indices, compute_phase, popcount
+from pyscf.ormas_ci.utils import bits_to_indices, compute_phase, popcount
 
 __all__ = ["matrix_element", "excitation_info"]
 

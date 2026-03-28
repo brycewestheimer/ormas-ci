@@ -9,13 +9,13 @@ Reference values come from PySCF's ``fci.direct_spin1`` solver.
 """
 
 import numpy as np
-from pyscf import ao2mo, fci, gto, mcscf, scf
 from scipy.stats import ortho_group
 
-from ormas_ci.determinants import build_determinant_list
-from ormas_ci.fcisolver import ORMASFCISolver
-from ormas_ci.hamiltonian import build_ci_hamiltonian
-from ormas_ci.subspaces import ORMASConfig, Subspace
+from pyscf import ao2mo, fci, gto, mcscf, scf
+from pyscf.ormas_ci.determinants import build_determinant_list
+from pyscf.ormas_ci.fcisolver import ORMASFCISolver
+from pyscf.ormas_ci.hamiltonian import build_ci_hamiltonian
+from pyscf.ormas_ci.subspaces import ORMASConfig, Subspace
 
 # ------------------------------------------------------------------ #
 #  Molecule fixtures                                                  #

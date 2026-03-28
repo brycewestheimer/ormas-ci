@@ -3,7 +3,7 @@
 ## Package Structure
 
 ```
-src/ormas_ci/
+pyscf/ormas_ci/
     __init__.py          Public API exports
     utils.py             Bit manipulation primitives
     subspaces.py         Subspace data model and validation

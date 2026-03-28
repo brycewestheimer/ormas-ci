@@ -8,7 +8,7 @@ using the Slater-Condon rules. Supports both dense and sparse output.
 import numpy as np
 import scipy.sparse as sp
 
-from ormas_ci.slater_condon import matrix_element
+from pyscf.ormas_ci.slater_condon import matrix_element
 
 __all__ = ["build_ci_hamiltonian"]
 

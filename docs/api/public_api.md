@@ -1,10 +1,10 @@
 # Public API Reference
 
 The public API consists of the solver class, configuration classes, and utility functions.
-All are importable directly from `ormas_ci`:
+All are importable directly from `pyscf.ormas_ci`:
 
 ```python
-from ormas_ci import (
+from pyscf.ormas_ci import (
     ORMASFCISolver,
     ORMASConfig,
     RASConfig,
@@ -16,7 +16,7 @@ from ormas_ci import (
 
 ## Solver
 
-::: ormas_ci.ORMASFCISolver
+::: pyscf.ormas_ci.ORMASFCISolver
     options:
       members:
         - __init__
@@ -36,7 +36,7 @@ enabling compatibility with PySCF addons such as `fix_spin_` and
 iterative CASSCF workflows.  They are part of the public API but are
 primarily called by PySCF internals rather than by user code directly.
 
-::: ormas_ci.ORMASFCISolver
+::: pyscf.ormas_ci.ORMASFCISolver
     options:
       members:
         - absorb_h1e
@@ -52,18 +52,18 @@ primarily called by PySCF internals rather than by user code directly.
 
 ## Configuration
 
-::: ormas_ci.subspaces.Subspace
+::: pyscf.ormas_ci.subspaces.Subspace
 
-::: ormas_ci.subspaces.ORMASConfig
+::: pyscf.ormas_ci.subspaces.ORMASConfig
 
-::: ormas_ci.subspaces.RASConfig
+::: pyscf.ormas_ci.subspaces.RASConfig
 
 ---
 
 ## Determinant Utilities
 
-::: ormas_ci.determinants.build_determinant_list
+::: pyscf.ormas_ci.determinants.build_determinant_list
 
-::: ormas_ci.determinants.count_determinants
+::: pyscf.ormas_ci.determinants.count_determinants
 
-::: ormas_ci.determinants.casci_determinant_count
+::: pyscf.ormas_ci.determinants.casci_determinant_count

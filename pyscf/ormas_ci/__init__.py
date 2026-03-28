@@ -7,7 +7,7 @@ workflows where restricted CI expansions reduce qubit requirements and circuit d
 
 Usage:
     from pyscf import gto, scf, mcscf
-    from ormas_ci import ORMASFCISolver, ORMASConfig, Subspace
+    from pyscf.ormas_ci import ORMASFCISolver, ORMASConfig, Subspace
 
     mol = gto.M(atom='O 0 0 0; H 0 0.757 0.587; H 0 -0.757 0.587', basis='sto-3g')
     mf = scf.RHF(mol).run()
@@ -30,11 +30,11 @@ is carried entirely by the ORMASFCISolver object. PySCF's CASCI handles orbital
 setup and integral transformation; our solver handles the restricted CI internally.
 """
 
-from ormas_ci.determinants import build_determinant_list, count_determinants
-from ormas_ci.fcisolver import ORMASFCISolver
-from ormas_ci.subspaces import ORMASConfig, RASConfig, Subspace
+from pyscf.ormas_ci.determinants import build_determinant_list, count_determinants
+from pyscf.ormas_ci.fcisolver import ORMASFCISolver
+from pyscf.ormas_ci.subspaces import ORMASConfig, RASConfig, Subspace
 
-__version__ = "0.2.0"
+__version__ = "0.3.0"
 
 __all__ = [
     "Subspace",

@@ -3,7 +3,7 @@
 ## Installation
 
 ```bash
-pip install ormas-ci
+pip install pyscf-ormas-ci
 ```
 
 Or from source:
@@ -22,7 +22,7 @@ This example runs ORMAS-CI on H2O with a sigma/pi orbital partitioning.
 
 ```python
 from pyscf import gto, scf, mcscf
-from ormas_ci import ORMASFCISolver, ORMASConfig, Subspace
+from pyscf.ormas_ci import ORMASFCISolver, ORMASConfig, Subspace
 
 # Set up the molecule
 mol = gto.M(
@@ -75,7 +75,7 @@ may be excluding important configurations.
 ## Checking the Determinant Reduction
 
 ```python
-from ormas_ci.determinants import count_determinants, casci_determinant_count
+from pyscf.ormas_ci.determinants import count_determinants, casci_determinant_count
 
 n_ormas = count_determinants(config)
 n_casci = casci_determinant_count(ncas, nelecas)

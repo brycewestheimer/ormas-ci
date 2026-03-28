@@ -118,7 +118,7 @@ void ormas_cre_des_linkstr(
 **Expected speedup:** 10-50x on link table generation (significant for
 CASSCF where `kernel()` is called many times).
 
-**Files:** `src/ormas_ci/_ext/ormas_linkstr.cpp` (new), `pyproject.toml`
+**Files:** `pyscf/ormas_ci/_ext/ormas_linkstr.cpp` (new), `pyproject.toml`
 
 ### 2.2 ORMAS-Aware Sigma Vector
 
@@ -129,7 +129,7 @@ generic `selected_ci.contract_2e()`.
 
 **Expected speedup:** 2-5x beyond PySCF's generic selected\_ci sigma.
 
-**Files:** `src/ormas_ci/_ext/ormas_contract.cpp` (new)
+**Files:** `pyscf/ormas_ci/_ext/ormas_contract.cpp` (new)
 
 ### 2.3 Custom C-Level RDM Construction
 
@@ -140,7 +140,7 @@ tables directly.
 
 **Expected speedup:** 50-200x vs pure-Python RDM construction.
 
-**Files:** `src/ormas_ci/_ext/ormas_rdm.cpp` (new)
+**Files:** `pyscf/ormas_ci/_ext/ormas_rdm.cpp` (new)
 
 ### 2.4 Build Infrastructure
 
@@ -175,7 +175,7 @@ restrictions while maintaining chemical accuracy — especially valuable
 for quantum resource estimation, where the classical PT2 correction
 quantifies how much error the quantum computer would need to recover.
 
-**Files:** `src/ormas_ci/perturbation.py` (new), `src/ormas_ci/fcisolver.py`
+**Files:** `pyscf/ormas_ci/perturbation.py` (new), `pyscf/ormas_ci/fcisolver.py`
 
 ### 3.2 Automatic Subspace Partitioning
 
@@ -187,7 +187,7 @@ Heuristics for automatically determining ORMAS subspace boundaries:
   (metal d vs ligand pi), or orbital energy grouping
 - Integration with QDK/Chemistry's AVAS active space selection
 
-**Files:** `src/ormas_ci/auto_partition.py` (new)
+**Files:** `pyscf/ormas_ci/auto_partition.py` (new)
 
 ### 3.3 GAS-CI (Cumulative Constraints)
 
@@ -196,7 +196,7 @@ Requires modifying the feasibility check in the recursive distribution
 enumeration to track cumulative counts instead of per-subspace bounds.
 The rest of the pipeline (solver, RDMs, etc.) is identical to ORMAS.
 
-**Files:** `src/ormas_ci/determinants.py`, `src/ormas_ci/subspaces.py`
+**Files:** `pyscf/ormas_ci/determinants.py`, `pyscf/ormas_ci/subspaces.py`
 
 ### 3.4 ORMAS + Selected CI Hybrid
 
@@ -220,7 +220,7 @@ with better control over near-degenerate root convergence. Add
 root-following for state-specific CASSCF and spin-state targeting via
 `spin_square()` penalty.
 
-**Files:** `src/ormas_ci/davidson.py`, `src/ormas_ci/fcisolver.py`
+**Files:** `pyscf/ormas_ci/davidson.py`, `pyscf/ormas_ci/fcisolver.py`
 
 ---
 

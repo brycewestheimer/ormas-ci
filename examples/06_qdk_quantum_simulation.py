@@ -12,15 +12,15 @@ The key insight: ORMAS restricts the determinant space, which produces
 different (often shallower) state preparation circuits for quantum
 simulation, while targeting the same qubit Hamiltonian.
 
-Requires: pip install ormas-ci[qdk]
+Requires: pip install pyscf-ormas-ci[qdk]
 """
 
 import numpy as np
 from pyscf import gto, mcscf, scf
 from pyscf.fci import cistring
 
-from ormas_ci import ORMASConfig, ORMASFCISolver, Subspace
-from ormas_ci.determinants import casci_determinant_count, count_determinants
+from pyscf.ormas_ci import ORMASConfig, ORMASFCISolver, Subspace
+from pyscf.ormas_ci.determinants import casci_determinant_count, count_determinants
 
 try:
     from qdk_chemistry._core.data import (
@@ -45,7 +45,7 @@ except ImportError:
 
 if not QDK_AVAILABLE:
     print("qdk-chemistry is not installed.")
-    print("Install with: pip install ormas-ci[qdk]")
+    print("Install with: pip install pyscf-ormas-ci[qdk]")
     raise SystemExit(1)
 
 

@@ -11,8 +11,8 @@ Index convention (matching PySCF):
 
 import numpy as np
 
-from ormas_ci.slater_condon import excitation_info
-from ormas_ci.utils import bits_to_indices, compute_phase, popcount
+from pyscf.ormas_ci.slater_condon import excitation_info
+from pyscf.ormas_ci.utils import bits_to_indices, compute_phase, popcount
 
 __all__ = ["make_rdm1", "make_rdm1s", "make_rdm12", "make_rdm12s"]
 

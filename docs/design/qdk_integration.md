@@ -50,7 +50,7 @@ from qdk_chemistry.data import Structure
 from qdk_chemistry.plugins.pyscf.scf_solver import PyscfScfSolver
 from qdk_chemistry.plugins.pyscf.conversion import orbitals_to_scf, SCFType
 from pyscf import mcscf
-from ormas_ci import ORMASFCISolver, ORMASConfig, Subspace
+from pyscf.ormas_ci import ORMASFCISolver, ORMASConfig, Subspace
 
 # 1. Structure and SCF via QDK/Chemistry
 xyz_str = "2\nH2\nH  0.0  0.0  0.0\nH  0.0  0.0  0.74"

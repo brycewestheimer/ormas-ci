@@ -5,13 +5,13 @@ but are documented here for contributors and advanced users.
 
 ## Bit Manipulation Utilities
 
-::: ormas_ci.utils
+::: pyscf.ormas_ci.utils
 
 ---
 
 ## Slater-Condon Matrix Elements
 
-::: ormas_ci.slater_condon
+::: pyscf.ormas_ci.slater_condon
     options:
       filters:
         - "!^_"
@@ -20,19 +20,19 @@ but are documented here for contributors and advanced users.
 
 ## CI Hamiltonian Construction
 
-::: ormas_ci.hamiltonian
+::: pyscf.ormas_ci.hamiltonian
 
 ---
 
 ## Eigenvalue Solver
 
-::: ormas_ci.solver
+::: pyscf.ormas_ci.solver
 
 ---
 
 ## Reduced Density Matrices
 
-::: ormas_ci.rdm
+::: pyscf.ormas_ci.rdm
     options:
       filters:
         - "!^_"

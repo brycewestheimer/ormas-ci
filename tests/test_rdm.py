@@ -6,14 +6,14 @@ against PySCF's FCI RDM1 as a reference.
 """
 
 import numpy as np
-from pyscf import ao2mo, fci, gto, mcscf, scf
 
-from ormas_ci.determinants import build_determinant_list
-from ormas_ci.hamiltonian import build_ci_hamiltonian
-from ormas_ci.rdm import make_rdm1
-from ormas_ci.solver import solve_ci
-from ormas_ci.subspaces import ORMASConfig, Subspace
-from ormas_ci.utils import generate_strings
+from pyscf import ao2mo, fci, gto, mcscf, scf
+from pyscf.ormas_ci.determinants import build_determinant_list
+from pyscf.ormas_ci.hamiltonian import build_ci_hamiltonian
+from pyscf.ormas_ci.rdm import make_rdm1
+from pyscf.ormas_ci.solver import solve_ci
+from pyscf.ormas_ci.subspaces import ORMASConfig, Subspace
+from pyscf.ormas_ci.utils import generate_strings
 
 
 def _h2_ci_solution():

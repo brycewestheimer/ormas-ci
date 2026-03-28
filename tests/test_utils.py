@@ -2,7 +2,7 @@
 
 from math import comb
 
-from ormas_ci.utils import (
+from pyscf.ormas_ci.utils import (
     bits_to_indices,
     compute_phase,
     generate_strings,

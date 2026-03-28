@@ -3,8 +3,8 @@ requires = ["setuptools>=68.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "ormas-ci"
-version = "0.2.0"
+name = "pyscf-ormas-ci"
+version = "0.3.0"
 description = "ORMAS-CI and RASCI solver as a PySCF fcisolver plugin with matrix-free SCI integration"
 readme = "README.md"
 license = "MIT"
@@ -63,14 +63,14 @@ Repository = "https://github.com/brycewestheimer/ormas-ci"
 Issues = "https://github.com/brycewestheimer/ormas-ci/issues"
 
 [tool.setuptools.packages.find]
-where = ["src"]
+include = ["pyscf*", "ormas_ci"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-v --tb=short"
 
 [tool.coverage.run]
-source = ["ormas_ci"]
+source = ["pyscf.ormas_ci"]
 
 [tool.coverage.report]
 show_missing = true
@@ -82,7 +82,7 @@ exclude_also = [
 [tool.pyright]
 pythonVersion = "3.11"
 typeCheckingMode = "basic"
-include = ["src"]
+include = ["pyscf"]
 
 [tool.ruff]
 line-length = 100

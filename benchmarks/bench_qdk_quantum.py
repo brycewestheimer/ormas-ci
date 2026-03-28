@@ -12,7 +12,7 @@ Metrics per system per method:
 - Real IQPE energy from QDK simulator
 - Real VQE-style energy from shot-based estimation
 
-Requires: pip install ormas-ci[qdk]
+Requires: pip install pyscf-ormas-ci[qdk]
 """
 
 from __future__ import annotations
@@ -29,9 +29,9 @@ from pathlib import Path
 import numpy as np
 from pyscf import gto, mcscf, scf
 
-from ormas_ci import ORMASConfig, ORMASFCISolver, Subspace
-from ormas_ci.determinants import casci_determinant_count
-from ormas_ci.subspaces import RASConfig
+from pyscf.ormas_ci import ORMASConfig, ORMASFCISolver, Subspace
+from pyscf.ormas_ci.determinants import casci_determinant_count
+from pyscf.ormas_ci.subspaces import RASConfig
 
 try:
     # Import data classes (some aliased to avoid name collisions)
@@ -1335,7 +1335,7 @@ Examples:
     args = parser.parse_args()
 
     if not QDK_AVAILABLE:
-        print("qdk-chemistry is not installed. Install with: pip install ormas-ci[qdk]")
+        print("qdk-chemistry is not installed. Install with: pip install pyscf-ormas-ci[qdk]")
         sys.exit(1)
 
     if args.all:

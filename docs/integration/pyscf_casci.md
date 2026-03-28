@@ -4,7 +4,7 @@
 
 ```python
 from pyscf import gto, scf, mcscf
-from ormas_ci import ORMASFCISolver, ORMASConfig, Subspace
+from pyscf.ormas_ci import ORMASFCISolver, ORMASConfig, Subspace
 
 # 1. Standard PySCF setup (molecule, HF)
 mol = gto.M(
@@ -55,7 +55,7 @@ If these don't match, `kernel()` raises a ValueError.
 For the traditional 3-subspace RAS, use the convenience constructor:
 
 ```python
-from ormas_ci import RASConfig
+from pyscf.ormas_ci import RASConfig
 
 ras = RASConfig(
     ras1_orbitals=[0, 1],         # Mostly occupied
@@ -113,7 +113,7 @@ If the difference is large, the subspace constraints may be too tight.
 ## Checking Determinant Reduction
 
 ```python
-from ormas_ci.determinants import count_determinants, casci_determinant_count
+from pyscf.ormas_ci.determinants import count_determinants, casci_determinant_count
 
 n_ormas = count_determinants(config)
 n_casci = casci_determinant_count(ncas, nelecas)

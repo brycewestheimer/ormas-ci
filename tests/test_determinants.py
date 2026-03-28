@@ -2,13 +2,13 @@
 
 from math import comb
 
-from ormas_ci.determinants import (
+from pyscf.ormas_ci.determinants import (
     build_determinant_list,
     casci_determinant_count,
     count_determinants,
 )
-from ormas_ci.subspaces import ORMASConfig, RASConfig, Subspace
-from ormas_ci.utils import popcount, subspace_occupation
+from pyscf.ormas_ci.subspaces import ORMASConfig, RASConfig, Subspace
+from pyscf.ormas_ci.utils import popcount, subspace_occupation
 
 
 def test_single_subspace_matches_casci():

@@ -7,10 +7,9 @@ Runs the solver on real molecules to verify chemical correctness:
 """
 
 from pyscf import gto, mcscf, scf
-
-from ormas_ci.determinants import casci_determinant_count, count_determinants
-from ormas_ci.fcisolver import ORMASFCISolver
-from ormas_ci.subspaces import ORMASConfig, RASConfig, Subspace
+from pyscf.ormas_ci.determinants import casci_determinant_count, count_determinants
+from pyscf.ormas_ci.fcisolver import ORMASFCISolver
+from pyscf.ormas_ci.subspaces import ORMASConfig, RASConfig, Subspace
 
 
 def test_h2_dissociation():

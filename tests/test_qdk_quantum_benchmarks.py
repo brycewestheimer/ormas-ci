@@ -11,7 +11,7 @@ import pytest
 
 sys.path.insert(0, "benchmarks")
 
-from ormas_ci import ORMASConfig, Subspace
+from pyscf.ormas_ci import ORMASConfig, Subspace
 
 try:
     from qdk_chemistry.algorithms import QdkHamiltonianConstructor, QdkQubitMapper, create
@@ -397,6 +397,7 @@ class TestWavefunctionFilter:
     def test_h2_filter_returns_valid_structure(self):
         """Filter on H2 produces valid result structure."""
         from bench_qdk_quantum import _build_method_state_prep, _pyscf_ci_to_determinant_arrays
+
         from pyscf import gto, mcscf, scf
 
         mol = gto.M(atom="H 0 0 0; H 0 0 0.74", basis="sto-3g", verbose=0)

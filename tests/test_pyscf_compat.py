@@ -7,9 +7,9 @@ inheritance, and all required interface methods.
 
 import numpy as np
 import pytest
-from pyscf import ao2mo, gto, mcscf, scf
 
-from ormas_ci import ORMASConfig, ORMASFCISolver, Subspace
+from pyscf import ao2mo, gto, mcscf, scf
+from pyscf.ormas_ci import ORMASConfig, ORMASFCISolver, Subspace
 
 # ---------------------------------------------------------------------------
 # Fixtures
@@ -134,7 +134,7 @@ class TestMakeHdiag:
         eri_4d = ao2mo.restore(1, eri, 2)
         hdiag = solver.make_hdiag(h1e, eri_4d, 2, (1, 1))
 
-        from ormas_ci.hamiltonian import build_ci_hamiltonian
+        from pyscf.ormas_ci.hamiltonian import build_ci_hamiltonian
         h_ci = build_ci_hamiltonian(
             solver._alpha_strings, solver._beta_strings, h1e, eri_4d
         )
@@ -205,7 +205,7 @@ class TestContract1e:
         ci = solver._ci_vector
         sigma = solver.contract_1e(h1e, ci, 2, (1, 1))
         # Build 1e-only Hamiltonian for reference
-        from ormas_ci.hamiltonian import build_ci_hamiltonian
+        from pyscf.ormas_ci.hamiltonian import build_ci_hamiltonian
         h2e_zero = np.zeros((2, 2, 2, 2))
         h1_only = build_ci_hamiltonian(
             solver._alpha_strings, solver._beta_strings, h1e, h2e_zero

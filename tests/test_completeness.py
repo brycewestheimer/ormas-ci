@@ -16,11 +16,11 @@ Covers:
 
 import numpy as np
 import pytest
-from pyscf import ao2mo, fci, gto, mcscf, scf
 
-from ormas_ci import ORMASConfig, ORMASFCISolver, Subspace
-from ormas_ci.determinants import build_determinant_list
-from ormas_ci.hamiltonian import build_ci_hamiltonian
+from pyscf import ao2mo, fci, gto, mcscf, scf
+from pyscf.ormas_ci import ORMASConfig, ORMASFCISolver, Subspace
+from pyscf.ormas_ci.determinants import build_determinant_list
+from pyscf.ormas_ci.hamiltonian import build_ci_hamiltonian
 
 # ------------------------------------------------------------------ #
 #  Error guard tests (RuntimeError before kernel)                     #

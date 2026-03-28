@@ -11,9 +11,9 @@ RASConfig is a convenience wrapper that converts to ORMASConfig.
 
 from pyscf import gto, mcscf, scf
 
-from ormas_ci import ORMASFCISolver
-from ormas_ci.determinants import casci_determinant_count, count_determinants
-from ormas_ci.subspaces import RASConfig
+from pyscf.ormas_ci import ORMASFCISolver
+from pyscf.ormas_ci.determinants import casci_determinant_count, count_determinants
+from pyscf.ormas_ci.subspaces import RASConfig
 
 # Formaldehyde: classic n -> pi* photochemistry system
 mol = gto.M(

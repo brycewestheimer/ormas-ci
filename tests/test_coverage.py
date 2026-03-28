@@ -10,15 +10,15 @@ These tests target areas not covered by test_fcisolver.py or test_molecules.py:
 
 import numpy as np
 import pytest
-from pyscf import gto, mcscf, scf
 
-from ormas_ci.determinants import (
+from pyscf import gto, mcscf, scf
+from pyscf.ormas_ci.determinants import (
     build_determinant_list,
     casci_determinant_count,
     count_determinants,
 )
-from ormas_ci.fcisolver import ORMASFCISolver
-from ormas_ci.subspaces import ORMASConfig, Subspace
+from pyscf.ormas_ci.fcisolver import ORMASFCISolver
+from pyscf.ormas_ci.subspaces import ORMASConfig, Subspace
 
 # ---------------------------------------------------------------------------
 # Shared molecule fixtures

@@ -2,7 +2,7 @@
 
 import pytest
 
-from ormas_ci.subspaces import ORMASConfig, RASConfig, Subspace
+from pyscf.ormas_ci.subspaces import ORMASConfig, RASConfig, Subspace
 
 
 def test_valid_config():

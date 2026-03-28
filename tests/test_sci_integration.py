@@ -10,9 +10,9 @@ sigma vectors.
 
 import numpy as np
 import pytest
-from pyscf import gto, mcscf, scf
 
-from ormas_ci import ORMASConfig, ORMASFCISolver, Subspace
+from pyscf import gto, mcscf, scf
+from pyscf.ormas_ci import ORMASConfig, ORMASFCISolver, Subspace
 
 # ---------- fixtures ----------
 

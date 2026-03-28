@@ -20,7 +20,7 @@ Derivation:
 
 import numpy as np
 
-from ormas_ci.utils import bits_to_indices, compute_phase
+from pyscf.ormas_ci.utils import bits_to_indices, compute_phase
 
 __all__ = ["SigmaEinsum"]
 

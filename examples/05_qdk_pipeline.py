@@ -8,13 +8,13 @@ Demonstrates the end-to-end integration:
 4. QDK constructs the Jordan-Wigner qubit Hamiltonian
 5. QDK's classical solver verifies the qubit energy matches
 
-Requires: pip install ormas-ci[qdk]
+Requires: pip install pyscf-ormas-ci[qdk]
 """
 
 from pyscf import mcscf
 
-from ormas_ci import ORMASConfig, ORMASFCISolver, Subspace
-from ormas_ci.determinants import casci_determinant_count, count_determinants
+from pyscf.ormas_ci import ORMASConfig, ORMASFCISolver, Subspace
+from pyscf.ormas_ci.determinants import casci_determinant_count, count_determinants
 
 try:
     from qdk_chemistry.algorithms import QdkHamiltonianConstructor, QdkQubitMapper, create
@@ -28,7 +28,7 @@ except ImportError:
 
 if not QDK_AVAILABLE:
     print("qdk-chemistry is not installed.")
-    print("Install with: pip install ormas-ci[qdk]")
+    print("Install with: pip install pyscf-ormas-ci[qdk]")
     raise SystemExit(1)
 
 # --- Step 1: QDK SCF on H2O ---

@@ -18,7 +18,7 @@ The package supports both the classic three-space RASCI partitioning and the gen
 ## Installation
 
 ```bash
-pip install ormas-ci
+pip install pyscf-ormas-ci
 ```
 
 From source:
@@ -45,8 +45,8 @@ Run an ORMAS-CI calculation on water, partitioning the active space into sigma a
 
 ```python
 from pyscf import gto, scf, mcscf
-from ormas_ci import ORMASFCISolver, ORMASConfig, Subspace
-from ormas_ci.determinants import count_determinants, casci_determinant_count
+from pyscf.ormas_ci import ORMASFCISolver, ORMASConfig, Subspace
+from pyscf.ormas_ci.determinants import count_determinants, casci_determinant_count
 
 mol = gto.M(
     atom='O 0 0 0; H 0 0.757 0.587; H 0 -0.757 0.587',

@@ -7,12 +7,12 @@ and the QDK/Chemistry quantum computing pipeline.
 
 Examples 01-04 require only PySCF (core dependency):
 ```bash
-pip install ormas-ci
+pip install pyscf-ormas-ci
 ```
 
 Examples 05-06 additionally require QDK/Chemistry:
 ```bash
-pip install ormas-ci[qdk]
+pip install pyscf-ormas-ci[qdk]
 ```
 
 ## PySCF Examples

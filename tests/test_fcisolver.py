@@ -10,10 +10,10 @@ occupation restrictions, it must reproduce PySCF CASCI energy exactly.
 import logging
 
 import numpy as np
-from pyscf import gto, mcscf, scf
 
-from ormas_ci.fcisolver import ORMASFCISolver
-from ormas_ci.subspaces import ORMASConfig, Subspace
+from pyscf import gto, mcscf, scf
+from pyscf.ormas_ci.fcisolver import ORMASFCISolver
+from pyscf.ormas_ci.subspaces import ORMASConfig, Subspace
 
 
 def test_unrestricted_matches_casci():

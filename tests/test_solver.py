@@ -3,7 +3,7 @@
 import numpy as np
 import scipy.sparse as sp
 
-from ormas_ci.solver import solve_ci
+from pyscf.ormas_ci.solver import solve_ci
 
 
 def test_known_eigenvalues():

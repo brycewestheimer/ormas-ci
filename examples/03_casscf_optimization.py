@@ -9,7 +9,7 @@ with PySCF's default FCI solver.
 
 from pyscf import gto, mcscf, scf
 
-from ormas_ci import ORMASConfig, ORMASFCISolver, Subspace
+from pyscf.ormas_ci import ORMASConfig, ORMASFCISolver, Subspace
 
 # H2O with a small basis for fast CASSCF convergence
 mol = gto.M(

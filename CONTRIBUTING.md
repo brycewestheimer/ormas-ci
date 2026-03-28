@@ -28,7 +28,7 @@ pytest
 With coverage:
 
 ```bash
-pytest --cov=ormas_ci --cov-report=term-missing
+pytest --cov=pyscf.ormas_ci --cov-report=term-missing
 ```
 
 ## Code Style
@@ -41,7 +41,7 @@ pytest --cov=ormas_ci --cov-report=term-missing
 Run the linter:
 
 ```bash
-ruff check src/ tests/
+ruff check pyscf/ tests/
 ```
 
 ## Pull Request Process

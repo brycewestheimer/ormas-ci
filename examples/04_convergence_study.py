@@ -14,8 +14,8 @@ holds ~4. We systematically allow more charge transfer between them.
 
 from pyscf import gto, mcscf, scf
 
-from ormas_ci import ORMASConfig, ORMASFCISolver, Subspace
-from ormas_ci.determinants import casci_determinant_count, count_determinants
+from pyscf.ormas_ci import ORMASConfig, ORMASFCISolver, Subspace
+from pyscf.ormas_ci.determinants import casci_determinant_count, count_determinants
 
 # N2 at equilibrium
 mol = gto.M(atom="N 0 0 0; N 0 0 1.098", basis="cc-pVDZ", verbose=0)

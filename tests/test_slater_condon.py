@@ -6,10 +6,10 @@ eigenvalues match PySCF's FCI solver.
 """
 
 import numpy as np
-from pyscf import ao2mo, fci, gto, mcscf, scf
 
-from ormas_ci.slater_condon import matrix_element
-from ormas_ci.utils import generate_strings
+from pyscf import ao2mo, fci, gto, mcscf, scf
+from pyscf.ormas_ci.slater_condon import matrix_element
+from pyscf.ormas_ci.utils import generate_strings
 
 
 def _get_h2_integrals():

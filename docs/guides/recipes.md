@@ -7,7 +7,7 @@ CASCI exactly, something is wrong.
 
 ```python
 from pyscf import gto, scf, mcscf
-from ormas_ci import ORMASFCISolver, ORMASConfig, Subspace
+from pyscf.ormas_ci import ORMASFCISolver, ORMASConfig, Subspace
 
 mol = gto.M(atom='H 0 0 0; H 0 0 0.74', basis='sto-3g')
 mf = scf.RHF(mol).run()
@@ -35,7 +35,7 @@ print(f"Match confirmed: {e_ref:.10f}")
 Sigma core in RAS1, valence in RAS2, virtual in RAS3.
 
 ```python
-from ormas_ci import RASConfig
+from pyscf.ormas_ci import RASConfig
 
 mol = gto.M(atom='N 0 0 0; N 0 0 1.1', basis='sto-3g')
 mf = scf.RHF(mol).run()
@@ -99,7 +99,7 @@ config = ORMASConfig(
 Systematically relax constraints to see how the energy converges to CASCI.
 
 ```python
-from ormas_ci.determinants import count_determinants, casci_determinant_count
+from pyscf.ormas_ci.determinants import count_determinants, casci_determinant_count
 
 mol = gto.M(atom='N 0 0 0; N 0 0 1.1', basis='sto-3g')
 mf = scf.RHF(mol).run()
@@ -155,7 +155,7 @@ print("Natural orbital occupations:", occupations)
 Check the space size before committing to a full calculation:
 
 ```python
-from ormas_ci.determinants import count_determinants, casci_determinant_count
+from pyscf.ormas_ci.determinants import count_determinants, casci_determinant_count
 
 config = ORMASConfig(
     subspaces=[

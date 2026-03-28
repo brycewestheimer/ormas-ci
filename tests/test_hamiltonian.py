@@ -1,10 +1,10 @@
 """Tests for ormas_ci.hamiltonian -- CI Hamiltonian construction."""
 
 import numpy as np
-from pyscf import ao2mo, fci, gto, mcscf, scf
 
-from ormas_ci.hamiltonian import build_ci_hamiltonian
-from ormas_ci.utils import generate_strings
+from pyscf import ao2mo, fci, gto, mcscf, scf
+from pyscf.ormas_ci.hamiltonian import build_ci_hamiltonian
+from pyscf.ormas_ci.utils import generate_strings
 
 
 def _get_h2_setup():

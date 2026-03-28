@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-03-28
+
+### Changed
+- **Namespace package migration:** Renamed from `ormas-ci` / `ormas_ci` to
+  `pyscf-ormas-ci` / `pyscf.ormas_ci`. The package now lives under the
+  `pyscf` namespace package (`pyscf/ormas_ci/`) instead of `src/ormas_ci/`.
+  All imports change from `from ormas_ci import ...` to
+  `from pyscf.ormas_ci import ...`.
+- Installation command changed from `pip install ormas-ci` to
+  `pip install pyscf-ormas-ci`
+- A backward-compatibility shim at `ormas_ci/__init__.py` re-exports the
+  public API so that existing `from ormas_ci import ...` code continues to
+  work with a deprecation warning
+
 ## [0.2.0] - 2026-03-27
 
 ### Added

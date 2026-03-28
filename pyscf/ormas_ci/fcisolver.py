@@ -30,26 +30,26 @@ Integration design:
 import logging
 
 import numpy as np
-from pyscf import ao2mo, lib
 from pyscf.fci import direct_spin1 as _direct_spin1
 from pyscf.fci import selected_ci as _selected_ci
 from scipy.sparse.linalg import LinearOperator, eigsh
 
-from ormas_ci.davidson import davidson
-from ormas_ci.determinants import (
+from pyscf import ao2mo, lib
+from pyscf.ormas_ci.davidson import davidson
+from pyscf.ormas_ci.determinants import (
     build_determinant_list,
     casci_determinant_count,
 )
-from ormas_ci.hamiltonian import build_ci_hamiltonian
-from ormas_ci.rdm import _compute_s_minus_s_plus
-from ormas_ci.rdm import make_rdm1 as _make_rdm1
-from ormas_ci.rdm import make_rdm1s as _make_rdm1s
-from ormas_ci.rdm import make_rdm12 as _make_rdm12
-from ormas_ci.rdm import make_rdm12s as _make_rdm12s
-from ormas_ci.sigma import SigmaEinsum
-from ormas_ci.solver import solve_ci
-from ormas_ci.subspaces import ORMASConfig
-from ormas_ci.utils import bits_to_indices, popcount
+from pyscf.ormas_ci.hamiltonian import build_ci_hamiltonian
+from pyscf.ormas_ci.rdm import _compute_s_minus_s_plus
+from pyscf.ormas_ci.rdm import make_rdm1 as _make_rdm1
+from pyscf.ormas_ci.rdm import make_rdm1s as _make_rdm1s
+from pyscf.ormas_ci.rdm import make_rdm12 as _make_rdm12
+from pyscf.ormas_ci.rdm import make_rdm12s as _make_rdm12s
+from pyscf.ormas_ci.sigma import SigmaEinsum
+from pyscf.ormas_ci.solver import solve_ci
+from pyscf.ormas_ci.subspaces import ORMASConfig
+from pyscf.ormas_ci.utils import bits_to_indices, popcount
 
 __all__ = ["ORMASFCISolver"]
 
@@ -193,7 +193,7 @@ class ORMASFCISolver(lib.StreamObject):
 
     Usage:
         from pyscf import gto, scf, mcscf
-        from ormas_ci import ORMASFCISolver, ORMASConfig, Subspace
+        from pyscf.ormas_ci import ORMASFCISolver, ORMASConfig, Subspace
 
         mol = gto.M(atom='O 0 0 0; H 0 0.757 0.587; H 0 -0.757 0.587',
                      basis='ccpvdz')
@@ -930,7 +930,7 @@ class ORMASFCISolver(lib.StreamObject):
                 if return_strs:
                     result.append((ci_vector[k], bin(ai), bin(bi)))
                 else:
-                    from ormas_ci.utils import bits_to_indices
+                    from pyscf.ormas_ci.utils import bits_to_indices
 
                     result.append((
                         ci_vector[k],
@@ -947,7 +947,7 @@ class ORMASFCISolver(lib.StreamObject):
             if return_strs:
                 result = [(ci_vector[k_max], bin(ai), bin(bi))]
             else:
-                from ormas_ci.utils import bits_to_indices
+                from pyscf.ormas_ci.utils import bits_to_indices
 
                 result = [(
                     ci_vector[k_max],

@@ -17,8 +17,8 @@ from math import comb
 
 import numpy as np
 
-from ormas_ci.subspaces import ORMASConfig
-from ormas_ci.utils import generate_strings
+from pyscf.ormas_ci.subspaces import ORMASConfig
+from pyscf.ormas_ci.utils import generate_strings
 
 __all__ = [
     "build_determinant_list",

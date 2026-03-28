@@ -27,11 +27,11 @@ import numpy as np
 import scipy.sparse as sp
 from pyscf import gto, mcscf, scf
 
-from ormas_ci import ORMASConfig, ORMASFCISolver, Subspace, build_determinant_list
-from ormas_ci.determinants import casci_determinant_count
-from ormas_ci.hamiltonian import build_ci_hamiltonian
-from ormas_ci.solver import solve_ci
-from ormas_ci.subspaces import RASConfig
+from pyscf.ormas_ci import ORMASConfig, ORMASFCISolver, Subspace, build_determinant_list
+from pyscf.ormas_ci.determinants import casci_determinant_count
+from pyscf.ormas_ci.hamiltonian import build_ci_hamiltonian
+from pyscf.ormas_ci.solver import solve_ci
+from pyscf.ormas_ci.subspaces import RASConfig
 
 
 @dataclass
@@ -505,11 +505,11 @@ def _run_qdk_benchmarks(
         from qdk_chemistry.plugins.pyscf.scf_solver import PyscfScfSolver
     except ImportError:
         print("\n  [QDK/Chemistry not installed — skipping QDK benchmarks]")
-        print("  Install with: pip install ormas-ci[qdk]")
+        print("  Install with: pip install pyscf-ormas-ci[qdk]")
         return None
 
-    from ormas_ci import ORMASConfig, Subspace
-    from ormas_ci.subspaces import RASConfig
+    from pyscf.ormas_ci import ORMASConfig, Subspace
+    from pyscf.ormas_ci.subspaces import RASConfig
 
     print(f"\n{'='*70}")
     print("  QDK/Chemistry Integration Benchmarks")

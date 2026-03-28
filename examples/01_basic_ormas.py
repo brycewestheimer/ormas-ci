@@ -10,8 +10,8 @@ Demonstrates the core workflow:
 
 from pyscf import gto, mcscf, scf
 
-from ormas_ci import ORMASConfig, ORMASFCISolver, Subspace
-from ormas_ci.determinants import casci_determinant_count, count_determinants
+from pyscf.ormas_ci import ORMASConfig, ORMASFCISolver, Subspace
+from pyscf.ormas_ci.determinants import casci_determinant_count, count_determinants
 
 # Build H2O and run RHF
 mol = gto.M(

@@ -39,8 +39,7 @@ def _h2_qdk_scf():
 def test_qdk_scf_to_ormas_casci():
     """End-to-end: QDK SCF -> PySCF CASCI with ORMASFCISolver matches CASCI."""
     from pyscf import mcscf
-
-    from ormas_ci import ORMASConfig, ORMASFCISolver, Subspace
+    from pyscf.ormas_ci import ORMASConfig, ORMASFCISolver, Subspace
 
     pyscf_scf, _ = _h2_qdk_scf()
 
@@ -65,8 +64,7 @@ def test_qdk_scf_to_ormas_casci():
 def test_qdk_scf_restricted_ormas():
     """QDK SCF -> restricted ORMAS-CI gives energy >= CASCI."""
     from pyscf import mcscf
-
-    from ormas_ci import ORMASConfig, ORMASFCISolver, Subspace
+    from pyscf.ormas_ci import ORMASConfig, ORMASFCISolver, Subspace
 
     pyscf_scf, _ = _h2_qdk_scf()
 
@@ -128,8 +126,7 @@ def _h2o_qdk_scf():
 def test_qdk_h2o_ormas_matches_casci():
     """QDK SCF on H2O -> unrestricted ORMAS matches full CASCI."""
     from pyscf import mcscf
-
-    from ormas_ci import ORMASConfig, ORMASFCISolver, Subspace
+    from pyscf.ormas_ci import ORMASConfig, ORMASFCISolver, Subspace
 
     pyscf_scf = _h2o_qdk_scf()
     ncas = 4
@@ -158,8 +155,7 @@ def test_qdk_h2o_ormas_matches_casci():
 def test_qdk_h2o_restricted_ormas():
     """QDK SCF on H2O -> restricted ORMAS obeys variational principle."""
     from pyscf import mcscf
-
-    from ormas_ci import ORMASConfig, ORMASFCISolver, Subspace
+    from pyscf.ormas_ci import ORMASConfig, ORMASFCISolver, Subspace
 
     pyscf_scf = _h2o_qdk_scf()
     ncas = 4
