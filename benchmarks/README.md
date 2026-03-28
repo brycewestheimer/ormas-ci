@@ -24,7 +24,7 @@ python benchmarks/bench_vs_pyscf.py --repeats 5
 Each computational phase is timed separately:
 - **Determinant enumeration**: Building the restricted determinant list
 - **Hamiltonian construction**: Matrix element evaluation via Slater-Condon rules (dominant cost, O(n_det^2))
-- **Diagonalization**: Eigenvalue solve (dense eigh or sparse Lanczos)
+- **Diagonalization**: Eigenvalue solve (dense eigh, Davidson+einsum, or ARPACK Lanczos)
 
 ### Determinant Space Reduction
 The key value proposition of ORMAS-CI for quantum computing: restricting the active space reduces the number of determinants and excitation operators.

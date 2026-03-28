@@ -88,7 +88,7 @@ The ORMAS-CI energy will be at or slightly above the CASCI energy. If the gap is
 
 ## How It Works
 
-For small determinant spaces (n_det <= 200), the solver builds the CI Hamiltonian explicitly and diagonalizes with dense `numpy.linalg.eigh`. For larger spaces, it uses PySCF's `pyscf.fci.selected_ci` C-level routines for matrix-free sigma vector computation with `scipy.sparse.linalg.eigsh` for iterative eigenvalue extraction. RDMs, spin diagnostics, and the Davidson preconditioner also delegate to these C-level routines. (Note: despite the module name, this is not a Selected CI method — we use PySCF's `selected_ci` module as a computational backend for operating on arbitrary determinant sets.) See [`docs/design/pyscf_differences.md`](docs/design/pyscf_differences.md) for details on numerical accuracy.
+For small determinant spaces (n_det <= 200), the solver builds the CI Hamiltonian explicitly and diagonalizes with dense `numpy.linalg.eigh`. For larger spaces, it uses a pure-Python Davidson-Liu eigensolver with an einsum-based sigma vector that precomputes dense excitation matrices and ERI intermediates for fast H @ c computation via NumPy. For very large spaces (> 300 unique strings per spin channel), it falls back to PySCF's `pyscf.fci.selected_ci` C-level sigma with ARPACK Lanczos. RDMs, spin diagnostics, and the diagonal preconditioner delegate to PySCF's C-level `selected_ci` routines across all paths. See [`docs/design/pyscf_differences.md`](docs/design/pyscf_differences.md) for details on numerical accuracy.
 
 ## Documentation
 

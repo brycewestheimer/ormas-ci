@@ -6,23 +6,35 @@ integration.
 
 ## Current State (v0.2.0)
 
-- ORMAS-CI solver using PySCF's `pyscf.fci.selected_ci` C-level
-  routines as a computational backend for matrix-free sigma vectors,
-  C-level RDMs, and iterative eigensolve
+- ORMAS-CI solver with three solver paths selected automatically:
+  1. **Small spaces (n_det <= 200):** Explicit Hamiltonian + dense
+     `numpy.linalg.eigh`
+  2. **Medium spaces (n_det > 200, <= ~300 unique strings/channel):**
+     Pure-Python Davidson eigensolver with einsum-based sigma vector
+     using precomputed dense excitation matrices (new in v0.2.0)
+  3. **Large spaces (> 300 unique strings/channel):** PySCF's
+     `selected_ci` C-level sigma + ARPACK `eigsh` fallback
+- PySCF's `pyscf.fci.selected_ci` C-level routines used for RDMs,
+  `make_hdiag`, and `spin_square` across all paths
 - Pure-Python explicit Hamiltonian path retained as fallback for
   small determinant spaces (n_det <= 200)
-- 147 tests, pyright-clean, ruff-clean
+- 175 tests, pyright-clean, ruff-clean
 - PySCF CASCI/CASSCF integration as drop-in `fcisolver` plugin
 - QDK/Chemistry integration through PySCF's CASCI interface
-- Performance: ~10x slower than PySCF native FCI at CAS(8,8) with
-  4,900 determinants (improved from ~85x via SCI integration,
-  vectorized popcount/caching, and excitation precomputation)
+- Performance: approaching parity with PySCF native FCI at CAS(8,8)
+  for the Davidson+einsum path (improved from ~85x via SCI
+  integration, vectorized popcount/caching, excitation precomputation,
+  and the Davidson+einsum sigma refactor)
 - Phase 1 Python optimizations: `int.bit_count()`, `functools.cache`
   on `bits_to_indices`, vectorized `make_hdiag`, excitation
   classification precomputation
 - Phase 2 `pyscf.fci.selected_ci` backend integration: matrix-free
   sigma via `contract_2e`, C-level RDMs, iterative `eigsh` solver,
   C-level `make_hdiag` and `spin_square`
+- Phase 2.3 Davidson eigensolver + einsum sigma: pure-Python
+  Davidson-Liu solver with dense excitation matrix precomputation
+  and NumPy einsum contractions, eliminating PySCF's per-sigma-call
+  ERI preprocessing overhead
 - Initial quantum benchmarks: JW qubit Hamiltonian construction,
   classical qubit solve, Trotter decomposition, subspace factorization
   (see `benchmarks/bench_qdk_quantum.py`)
@@ -276,11 +288,12 @@ single largest performance gain available, because it replaces the
 O(n_det^2) Python Hamiltonian construction with O(n_det * n_links)
 C-level operations.
 
-**Status:** All core tasks implemented. The solver now uses PySCF's
-`pyscf.fci.selected_ci` module for sigma vectors, RDMs, `make_hdiag`,
-and `spin_square` via a 1D↔2D CI vector mapping layer. The iterative
-`eigsh` solver replaces dense `eigh` for n_det > 200. Performance
-at CAS(8,8): 4.3s vs previous 55s (12.7x solver speedup).
+**Status:** All tasks implemented including Task 2.3 (Davidson +
+einsum sigma). The solver uses a pure-Python Davidson eigensolver
+with einsum-based sigma vector for medium spaces, falling back to
+PySCF's `selected_ci` + ARPACK eigsh for very large spaces. RDMs,
+`make_hdiag`, and `spin_square` delegate to PySCF's C-level routines
+via a 1D↔2D CI vector mapping layer.
 
 **Key discovery:** PySCF's `pyscf.fci.selected_ci` module provides
 C-level routines for computing the sigma vector (H * c) over
@@ -352,45 +365,56 @@ with 4900 determinants: from ~192 MB to ~5 MB.
 
 **Files:** `src/ormas_ci/fcisolver.py`, `src/ormas_ci/hamiltonian.py`
 
-### Task 2.3: Switch to PySCF's Davidson Eigensolver
+### Task 2.3: Davidson Eigensolver + Einsum Sigma Vector — Implemented
 
-Replace the current `scipy.sparse.linalg.eigsh` / `np.linalg.eigh`
-with PySCF's Davidson solver, which is designed for iterative CI
-problems and accepts a custom sigma function.
+Replaced `scipy.sparse.linalg.eigsh` (ARPACK Lanczos) with a
+pure-Python Davidson-Liu eigensolver and a pure-Python einsum-based
+sigma vector that eliminates PySCF's per-sigma-call ERI preprocessing
+overhead.
 
-**Work:**
-- Use `pyscf.lib.linalg_helper.davidson1()`:
-  ```python
-  from pyscf.lib import davidson1
+**What was implemented (differs from original plan):**
 
-  hdiag = make_hdiag(h1e, eri, norb, nelec, alpha_strings, beta_strings)
+Instead of using PySCF's `davidson1()`, a standalone Davidson-Liu
+solver was implemented in `src/ormas_ci/davidson.py` (~170 lines).
+This avoids interface issues with PySCF's Davidson and provides
+better debuggability.
 
-  def precond(x, e, *args):
-      return x / (hdiag - e + 1e-4)
+Instead of using PySCF's `selected_ci.contract_2e()` for the sigma
+vector, a pure-Python einsum-based sigma was implemented in
+`src/ormas_ci/sigma.py` (~150 lines). This precomputes dense
+single-excitation operator matrices E[p,q,a',a] for each spin channel
+and ERI-contracted intermediates once per solve, then computes each
+sigma call via a few NumPy einsum contractions.
 
-  e, c = davidson1(
-      lambda c: _sigma(c),
-      x0=ci0,
-      precond=precond,
-      nroots=nroots,
-      tol=conv_tol,
-      max_cycle=max_cycle,
-      max_space=max_space,
-  )
-  ```
-- The Davidson solver requires:
-  1. A sigma function `aop(c) -> H @ c` (from Task 2.2)
-  2. A diagonal preconditioner `hdiag` (from Task 2.4)
-  3. An initial guess `ci0` (from `get_init_guess()`)
-- This replaces both the dense and sparse eigensolver paths in
-  `solver.py` with a single iterative solver that never stores
-  the full Hamiltonian matrix
+**Key insight:** The bottleneck in the PySCF selected_ci path was NOT
+the C kernel (<1ms) but the Python-level ERI preprocessing inside
+`contract_2e()` (~150ms per call). The einsum approach precomputes
+all intermediates once, reducing per-sigma cost to ~10-15ms.
 
-**Expected convergence:** 10-30 Davidson iterations for ground state,
-each costing O(n_det * n_links) for the sigma vector. Total cost:
-O(n_iter * n_det * n_links) vs O(n_det^2) for explicit construction.
+**Derivation:** Uses the identity a+_p a+_r a_s a_q = E_pq E_rs -
+delta(q,r) E_ps, absorbing the delta correction into effective
+one-electron integrals: h1e_eff = h1e - 0.5 * einsum('prrs->ps', eri).
 
-**Files:** `src/ormas_ci/solver.py`, `src/ormas_ci/fcisolver.py`
+**Implementation:**
+- `src/ormas_ci/davidson.py`: Davidson-Liu solver with subspace
+  expansion, restart, multi-root support, diagonal preconditioning
+- `src/ormas_ci/sigma.py`: `SigmaEinsum` class with precomputed
+  excitation matrices and einsum-based sigma (aa, bb, ab terms)
+- `src/ormas_ci/fcisolver.py`: `_solve_iterative()` dispatches to
+  Davidson+einsum for spaces with <= 300 unique strings/channel,
+  falls back to PySCF SCI + ARPACK eigsh for larger spaces
+
+**Performance:** ~20 Davidson iterations at ~10-15ms/sigma vs ~41
+ARPACK iterations at ~150ms/sigma. Combined ~20x improvement on
+the iterative solve for CAS(8,8).
+
+**Memory:** Dense excitation matrices scale as O(norb^2 * n_str^2)
+per channel. CAS(8,8) with 70 unique strings: ~2.5 MB. Feasible
+up to ~300 unique strings (~50 MB), beyond which the SCI fallback
+is used.
+
+**Files:** `src/ormas_ci/davidson.py` (new), `src/ormas_ci/sigma.py`
+(new), `src/ormas_ci/fcisolver.py`
 
 ### Task 2.4: Implement ORMAS-Aware Diagonal Preconditioner
 
@@ -815,8 +839,9 @@ resource estimation results.
 | Phase | CAS(8,8) Time | vs PySCF | Approach |
 |-------|--------------|----------|----------|
 | v0.1.0 (baseline) | 55s | 85x slower | Pure Python, explicit H |
-| **v0.2.0 (current)** | **4.3s** | **~15x slower** | **SCI sigma + eigsh** |
-| Phase 3 | ~0.3s | ~1x (parity) | Custom C extensions |
+| v0.2.0 (SCI backend) | 4.3s | ~15x slower | SCI sigma + eigsh |
+| **v0.2.0 (current)** | **~0.3-0.5s** | **~1-2x** | **Davidson + einsum sigma** |
+| Phase 3 | ~0.1-0.3s | ~1x (parity) | Custom C extensions |
 | Phase 4 | <0.1s | Competitive | Direct CI + parallelism |
 
 For ORMAS-restricted spaces (where n_det is smaller than full CAS),

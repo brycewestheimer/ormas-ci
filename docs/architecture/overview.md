@@ -10,7 +10,9 @@ src/ormas_ci/
     determinants.py      Restricted determinant enumeration
     slater_condon.py     Hamiltonian matrix element evaluation
     hamiltonian.py       CI matrix construction
-    solver.py            Eigenvalue solver wrapper
+    solver.py            Eigenvalue solver wrapper (dense/sparse)
+    davidson.py          Davidson-Liu iterative eigensolver
+    sigma.py             Einsum-based sigma vector engine
     rdm.py               Reduced density matrix construction
     fcisolver.py         PySCF integration layer
 ```
@@ -26,6 +28,8 @@ determinants.py     <- utils, subspaces
 slater_condon.py    <- utils
 hamiltonian.py      <- slater_condon
 solver.py           <- no internal dependencies (numpy/scipy only)
+davidson.py         <- no internal dependencies (numpy only)
+sigma.py            <- utils
 rdm.py              <- utils
 fcisolver.py        <- all of the above
 ```
@@ -65,8 +69,17 @@ PySCF's `pyscf.fci.selected_ci` C-level routines.
 
 **solver.py:** Thin wrapper around numpy.linalg.eigh (dense) and
 scipy.sparse.linalg.eigsh (sparse Lanczos). Used by the explicit
-Hamiltonian path. The matrix-free path uses eigsh with a
-LinearOperator wrapping PySCF's C-level sigma vector instead.
+Hamiltonian path and as fallback for very large iterative spaces.
+
+**davidson.py:** Pure-Python/NumPy Davidson-Liu iterative eigensolver
+with subspace expansion, restart, multi-root support, and diagonal
+preconditioning. Used for the medium-space iterative path.
+
+**sigma.py:** Pure-Python einsum-based sigma vector engine. Precomputes
+dense single-excitation operator matrices and ERI-contracted
+intermediates once per solve, then provides fast H @ c via NumPy einsum
+contractions. Used with the Davidson solver for spaces with <= 300
+unique strings per spin channel.
 
 **rdm.py:** Constructs reduced density matrices from CI eigenvectors.
 Implements both one-particle (1-RDM) and two-particle (2-RDM) density

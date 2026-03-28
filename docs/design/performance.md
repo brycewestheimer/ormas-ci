@@ -2,26 +2,39 @@
 
 ## Solver Architecture
 
-ORMAS-CI uses two solver paths, selected automatically:
+ORMAS-CI uses three solver paths, selected automatically:
 
 **Small spaces (n_det <= 200):** Explicit Hamiltonian matrix constructed
 via Slater-Condon rules, diagonalized with `numpy.linalg.eigh`. Gives
 exact eigenvalues. Vectorized excitation precomputation skips >50% of
 determinant pairs.
 
-**Large spaces (n_det > 200):** Matrix-free iterative solver using
-PySCF's C-level `pyscf.fci.selected_ci.contract_2e` for the sigma
-vector (H * c), with `scipy.sparse.linalg.eigsh` for eigenvalue
-extraction. RDMs, `make_hdiag`, and `spin_square` also delegate to
-PySCF's C-level `selected_ci` routines. No explicit Hamiltonian
-matrix is stored.
+**Medium spaces (n_det > 200, <= ~300 unique strings/channel):**
+Pure-Python Davidson-Liu eigensolver (`davidson.py`) with einsum-based
+sigma vector (`sigma.py`). Precomputes dense single-excitation operator
+matrices and ERI-contracted intermediates once per solve, then computes
+each sigma call via NumPy einsum contractions. This eliminates the
+per-call ERI preprocessing overhead of PySCF's `selected_ci.contract_2e`
+and reduces iteration count vs ARPACK Lanczos.
+
+**Large spaces (> 300 unique strings/channel):** Falls back to PySCF's
+C-level `pyscf.fci.selected_ci.contract_2e` for the sigma vector with
+`scipy.sparse.linalg.eigsh` (ARPACK Lanczos). Used when the dense
+excitation matrices would exceed memory limits.
+
+RDMs, `make_hdiag`, and `spin_square` delegate to PySCF's C-level
+`selected_ci` routines across all paths. No explicit Hamiltonian
+matrix is stored for the medium or large paths.
 
 Note: we use PySCF's `selected_ci` **module** as a computational
 backend for operating on arbitrary determinant string sets — not as a
 Selected CI method (CIPSI, ASCI). The determinant selection is entirely
 ORMAS constraint-based.
 
-The threshold is configurable via `ORMASFCISolver.direct_ci_threshold`.
+The thresholds are configurable via `ORMASFCISolver.direct_ci_threshold`
+(explicit H vs iterative, default 200) and
+`ORMASFCISolver.einsum_string_threshold` (einsum vs SCI fallback,
+default 300).
 
 ## Benchmarks
 
@@ -61,11 +74,15 @@ solve faster because the iterative solver operates on fewer determinants:
 
 ## Current Bottleneck
 
-For the matrix-free path, the bottleneck is the per-sigma-call overhead:
-each `eigsh` iteration requires converting the CI vector from ORMAS 1D
-to PySCF `selected_ci` 2D format, calling the C-level sigma routine, and
-converting back. For CAS(8,8), this takes ~17ms per call, and `eigsh`
-needs ~30 iterations.
+For the Davidson+einsum path (medium spaces), the bottleneck is the
+per-sigma einsum contraction cost (~10-15ms per call for CAS(8,8)),
+with ~20 Davidson iterations. The 1D↔2D CI vector conversion is
+negligible (~0.025ms). Total iterative solve: ~0.3-0.5s for CAS(8,8).
+
+For the SCI fallback path (large spaces), the bottleneck is PySCF's
+per-call ERI preprocessing inside `selected_ci.contract_2e()` (~150ms
+per call, of which <1ms is the actual C kernel). With ~41 ARPACK
+iterations, total: ~6s for CAS(8,8).
 
 For the explicit Hamiltonian path (n_det <= 200), the construction cost
 is negligible at these sizes.
@@ -82,18 +99,18 @@ The explicit Hamiltonian path stores the full n_det x n_det matrix:
 
 ## Acceleration Paths
 
-Further performance gains require:
+The Davidson+einsum implementation (Phase 2.3) addressed the dominant
+bottleneck for typical ORMAS spaces. Further performance gains require:
 
-1. **Eliminating the 1D/2D marshalling overhead** by working natively in
-   PySCF's `selected_ci` 2D format throughout, or implementing a custom
-   C-level sigma that operates directly on the ORMAS 1D representation.
-
-2. **Custom C extensions** (pybind11) for ORMAS-specific link table
+1. **Custom C extensions** (pybind11) for ORMAS-specific link table
    generation and sigma vector computation that exploit subspace block
-   structure.
+   structure (Phase 3).
 
-3. **PySCF's Davidson solver** instead of `scipy.eigsh`, for better
-   CI-specific convergence and multi-root handling.
+2. **Numba JIT** (optional) for accelerating excitation matrix
+   construction and RDM inner loops without requiring C compilation.
+
+3. **OpenMP parallelism** in custom C extensions for thread-level
+   parallelism on the sigma vector computation (Phase 4).
 
 See `FUTURE_DEVELOPMENT.md` (Phases 3-4) for details.
 

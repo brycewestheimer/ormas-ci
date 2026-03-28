@@ -45,6 +45,8 @@ from ormas_ci.rdm import make_rdm1 as _make_rdm1
 from ormas_ci.rdm import make_rdm1s as _make_rdm1s
 from ormas_ci.rdm import make_rdm12 as _make_rdm12
 from ormas_ci.rdm import make_rdm12s as _make_rdm12s
+from ormas_ci.davidson import davidson
+from ormas_ci.sigma import SigmaEinsum
 from ormas_ci.solver import solve_ci
 from ormas_ci.subspaces import ORMASConfig
 from ormas_ci.utils import bits_to_indices, popcount
@@ -278,6 +280,12 @@ class ORMASFCISolver(lib.StreamObject):
         # Below this, explicit Hamiltonian + dense eigh is faster.
         self.direct_ci_threshold = 200
 
+        # Einsum sigma engine (pure-Python, precomputed intermediates).
+        # Used when unique string count per channel is below this threshold.
+        # Above this, memory becomes excessive and we fall back to PySCF SCI.
+        self._sigma_einsum = None
+        self.einsum_string_threshold = 300
+
     def _normalize_nelecas(self, nelecas):
         """Normalize nelecas to a (n_alpha, n_beta) tuple.
 
@@ -419,6 +427,98 @@ class ORMASFCISolver(lib.StreamObject):
         """Whether the pyscf.fci.selected_ci backend is available for this solve."""
         return self._sci_link_index is not None
 
+    def _solve_iterative(self, h1e, eri, ncas, nelecas, n_det):
+        """Iterative eigensolver for the large-space path.
+
+        Tries the einsum sigma + Davidson path first (pure-Python, faster
+        for spaces with < einsum_string_threshold unique strings per
+        channel). Falls back to PySCF's selected_ci sigma + ARPACK eigsh
+        if the space is too large for dense excitation matrices.
+        """
+        assert self._sci_unique_alpha is not None
+        assert self._sci_unique_beta is not None
+        n_ua = len(self._sci_unique_alpha)
+        n_ub = len(self._sci_unique_beta)
+        use_einsum = (
+            max(n_ua, n_ub) <= self.einsum_string_threshold
+        )
+
+        if use_einsum:
+            return self._solve_davidson_einsum(
+                h1e, eri, ncas, nelecas, n_det, n_ua, n_ub,
+            )
+        else:
+            return self._solve_eigsh_sci(
+                h1e, eri, ncas, nelecas, n_det,
+            )
+
+    def _solve_davidson_einsum(self, h1e, eri, ncas, nelecas, n_det,
+                               n_ua, n_ub):
+        """Davidson eigensolver with pure-Python einsum sigma vector."""
+        logger.info(
+            f"  Using Davidson + einsum sigma "
+            f"({n_ua} alpha, {n_ub} beta unique strings)"
+        )
+        self._sigma_einsum = SigmaEinsum(
+            self._sci_unique_alpha, self._sci_unique_beta,
+            h1e, eri, nelec=nelecas,
+        )
+        logger.info(
+            f"  Einsum memory: {self._sigma_einsum.memory_estimate_mb():.1f} MB"
+        )
+
+        # Diagonal elements for preconditioner
+        hdiag_1d = self._make_hdiag_sci(h1e, eri, ncas, nelecas)
+
+        # Initial guess from lowest diagonal elements
+        if self.nroots == 1:
+            v0 = np.zeros(n_det)
+            v0[np.argmin(hdiag_1d)] = 1.0
+        else:
+            idx = np.argsort(hdiag_1d)[:self.nroots]
+            v0 = np.zeros((n_det, self.nroots))
+            for k, i in enumerate(idx):
+                v0[i, k] = 1.0
+
+        def sigma_1d(ci_1d):
+            ci_2d = self._ci_1d_to_2d(ci_1d)
+            sigma_2d = self._sigma_einsum.sigma(ci_2d)
+            return self._ci_2d_to_1d(sigma_2d)
+
+        def precond(r, e):
+            return r / (hdiag_1d - e + self.level_shift)
+
+        energies, ci_vectors = davidson(
+            aop=sigma_1d,
+            x0=v0,
+            precond=precond,
+            tol=self.conv_tol,
+            max_cycle=self.max_cycle,
+            max_space=self.max_space,
+            nroots=self.nroots,
+            lindep=self.lindep,
+        )
+        return energies, ci_vectors
+
+    def _solve_eigsh_sci(self, h1e, eri, ncas, nelecas, n_det):
+        """ARPACK eigsh with PySCF selected_ci sigma vector (fallback)."""
+        logger.info("  Using eigsh + PySCF selected_ci sigma (large space fallback)")
+        hdiag_1d = self._make_hdiag_sci(h1e, eri, ncas, nelecas)
+        v0 = np.zeros(n_det)
+        v0[np.argmin(hdiag_1d)] = 1.0
+
+        h_op = LinearOperator(
+            shape=(n_det, n_det),
+            matvec=self._sigma_sci,  # pyright: ignore[reportCallIssue]
+            dtype=np.float64,
+        )
+        energies, ci_vectors = eigsh(
+            h_op, k=self.nroots, which='SA',
+            v0=v0, tol=self.conv_tol,  # type: ignore[arg-type]
+        )
+        order = np.argsort(energies)
+        return energies[order], ci_vectors[:, order]
+
     def kernel(
         self,
         h1e: np.ndarray,
@@ -477,6 +577,7 @@ class ORMASFCISolver(lib.StreamObject):
         self._sci_det_col = None
         self._sci_link_index = None
         self._sci_eri_absorbed = None
+        self._sigma_einsum = None
 
         # Set PySCF state variables early (needed by selected_ci methods)
         self.norb = ncas
@@ -508,19 +609,14 @@ class ORMASFCISolver(lib.StreamObject):
                 f"electrons in [{sub.min_electrons}, {sub.max_electrons}]"
             )
 
+        # Always build the SCI mapping — needed for RDMs, spin_square, etc.
+        self._build_sci_mapping()
+        self._build_sci_link_tables(ncas, nelecas)
+        self._sci_eri_absorbed = _direct_spin1.absorb_h1e(
+            h1e, eri, ncas, sum(nelecas), fac=0.5,  # pyright: ignore[reportArgumentType]
+        )
+
         if n_det > self.direct_ci_threshold:
-            # Matrix-free path via PySCF's C-level selected_ci routines
-            self._build_sci_mapping()
-            self._build_sci_link_tables(ncas, nelecas)
-            self._sci_eri_absorbed = _direct_spin1.absorb_h1e(
-                h1e, eri, ncas, sum(nelecas), fac=0.5,  # pyright: ignore[reportArgumentType]
-            )
-
-            # Initial guess from lowest diagonal elements
-            hdiag_1d = self._make_hdiag_sci(h1e, eri, ncas, nelecas)
-            v0 = np.zeros(n_det)
-            v0[np.argmin(hdiag_1d)] = 1.0
-
             if self.nroots >= n_det:
                 # Fall back to explicit Hamiltonian for full diagonalization
                 h_ci = build_ci_hamiltonian(
@@ -529,31 +625,14 @@ class ORMASFCISolver(lib.StreamObject):
                 self._h_ci_cached = h_ci
                 energies, ci_vectors = solve_ci(h_ci, n_roots=self.nroots)
             else:
-                h_op = LinearOperator(
-                    shape=(n_det, n_det),
-                    matvec=self._sigma_sci,  # pyright: ignore[reportCallIssue]
-                    dtype=np.float64,
+                energies, ci_vectors = self._solve_iterative(
+                    h1e, eri, ncas, nelecas, n_det,
                 )
-                energies, ci_vectors = eigsh(
-                    h_op, k=self.nroots, which='SA',
-                    v0=v0, tol=self.conv_tol,  # type: ignore[arg-type]
-                )
-                # eigsh returns eigenvalues in ascending order for which='SA'
-                order = np.argsort(energies)
-                energies = energies[order]
-                ci_vectors = ci_vectors[:, order]
         else:
             # Explicit Hamiltonian path for small determinant spaces
             h_ci = build_ci_hamiltonian(alpha_strings, beta_strings, h1e, eri)
             self._h_ci_cached = h_ci
             energies, ci_vectors = solve_ci(h_ci, n_roots=self.nroots)
-
-            # Also build selected_ci mapping (cheap for small spaces) for RDMs etc.
-            self._build_sci_mapping()
-            self._build_sci_link_tables(ncas, nelecas)
-            self._sci_eri_absorbed = _direct_spin1.absorb_h1e(
-                h1e, eri, ncas, sum(nelecas), fac=0.5,  # pyright: ignore[reportArgumentType]
-            )
 
         self.converged = True
 

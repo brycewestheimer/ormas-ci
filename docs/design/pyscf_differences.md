@@ -15,7 +15,7 @@ level of agreement depends on the system size:
 | Regime | Agreement | Mechanism |
 |--------|-----------|-----------|
 | n_det <= 200 | Exact (0 Ha) | Dense `numpy.linalg.eigh` on explicit Hamiltonian |
-| n_det > 200 | ~1e-10 Ha | Iterative `scipy.sparse.linalg.eigsh` via PySCF's C-level sigma |
+| n_det > 200 | ~1e-10 Ha | Iterative Davidson or ARPACK eigsh (depending on space size) |
 
 For the iterative path, the convergence tolerance is controlled by
 `ORMASFCISolver.conv_tol` (default 1e-10).
@@ -60,32 +60,41 @@ beta_string_index).
 
 ### ORMAS-CI
 
-ORMAS-CI uses two solver paths, selected automatically by determinant
-count:
+ORMAS-CI uses three solver paths, selected automatically by determinant
+count and unique string count:
 
 **Small spaces (n_det <= 200):** Builds the explicit Hamiltonian matrix
 via Slater-Condon rules and diagonalizes with `numpy.linalg.eigh`. This
 gives exact eigenvalues/eigenvectors but scales as O(n_det^2) for
 construction and O(n_det^3) for diagonalization.
 
-**Large spaces (n_det > 200):** Uses PySCF's
-`pyscf.fci.selected_ci.contract_2e` C routine for matrix-free sigma
-vector computation, wrapped in `scipy.sparse.linalg.eigsh` (ARPACK
-Lanczos). The CI vector is internally mapped between a 1D ORMAS
-representation and PySCF's 2D `selected_ci` format on each sigma call.
+**Medium spaces (n_det > 200, <= ~300 unique strings/channel):** Uses a
+pure-Python Davidson-Liu eigensolver with einsum-based sigma vector.
+Precomputes dense single-excitation operator matrices E[p,q,a',a] and
+ERI-contracted intermediates once, then computes each sigma call via
+NumPy einsum contractions (~10-15ms per call). This avoids PySCF's
+per-call ERI preprocessing overhead and converges in fewer iterations
+than ARPACK Lanczos (~20 vs ~41 for CAS(8,8)).
+
+**Large spaces (> 300 unique strings/channel):** Falls back to PySCF's
+`pyscf.fci.selected_ci.contract_2e` C routine for sigma vectors with
+`scipy.sparse.linalg.eigsh` (ARPACK Lanczos). The CI vector is
+internally mapped between a 1D ORMAS representation and PySCF's 2D
+`selected_ci` format on each sigma call.
+
 (Note: we use PySCF's `selected_ci` module as a computational backend
 for arbitrary determinant string sets, not as a Selected CI method.)
 
-The threshold is controlled by `ORMASFCISolver.direct_ci_threshold`
-(default 200).
+The thresholds are controlled by `ORMASFCISolver.direct_ci_threshold`
+(default 200) and `ORMASFCISolver.einsum_string_threshold` (default
+300).
 
 ### Performance Comparison
 
-At CAS(8,8) with 4,900 determinants, ORMAS-CI is approximately 15x
-slower than PySCF's native FCI. The overhead comes from the
-Python-level 1D-to-2D CI vector marshalling on each sigma call. For
-smaller systems (n_det <= 400), ORMAS-CI is at parity or faster due
-to PySCF CASCI framework overhead dominating both solvers.
+At CAS(8,8) with 4,900 determinants, the Davidson+einsum path
+approaches parity with PySCF's native FCI (~0.3-0.5s vs ~0.3s).
+For smaller systems (n_det <= 400), ORMAS-CI is at parity or faster
+due to PySCF CASCI framework overhead dominating both solvers.
 
 The real value of ORMAS-CI is the determinant space reduction: an
 ORMAS-restricted CAS(8,8) might have 1,000 determinants instead of
@@ -113,9 +122,10 @@ Both PySCF and ORMAS-CI support multi-root calculations via
 
 - PySCF uses Davidson with deflation, which handles near-degenerate
   roots robustly.
-- ORMAS-CI uses `eigsh(k=nroots)`, which can occasionally miss or
-  swap near-degenerate roots if the convergence tolerance is too loose.
-  For systems with near-degeneracies, set `conv_tol=1e-12` or tighter.
+- ORMAS-CI uses Davidson for medium spaces and `eigsh(k=nroots)` for
+  large spaces. Both can occasionally miss or swap near-degenerate
+  roots if the convergence tolerance is too loose. For systems with
+  near-degeneracies, set `conv_tol=1e-12` or tighter.
 
 ## Feature Support
 
