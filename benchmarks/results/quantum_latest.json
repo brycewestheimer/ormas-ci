@@ -1,0 +1,74 @@
+{
+  "metadata": {
+    "python_version": "3.11.15",
+    "numpy_version": "2.3.5",
+    "timestamp": "2026-03-27T13:15:38",
+    "all_metrics_real": true
+  },
+  "results": [
+    {
+      "system": "FeO",
+      "method": "CASCI",
+      "basis": "cc-pVDZ",
+      "energy": -1337.1449712135466,
+      "energy_error_mha": 0.0,
+      "n_det": 784,
+      "t_fermionic": 0.2806132468394935,
+      "n_qubits": 16,
+      "n_pauli_terms": 5793,
+      "energy_qubit_solve": -1337.1449712138565,
+      "t_qubit_mapping": 0.23338515893556178,
+      "circuit_total_gates": 116445,
+      "circuit_cnot_count": 58464,
+      "circuit_rotation_count": 5348,
+      "circuit_depth": 116445,
+      "gate_counts": {
+        "cx": 58464,
+        "crz": 5348,
+        "sdg": 8772,
+        "h": 35088,
+        "s": 8772,
+        "p": 1
+      },
+      "state_prep_gates": 94850,
+      "state_prep_cnots": 16402,
+      "state_prep_n_det": 784,
+      "iqpe_energy_6bit": 0.0,
+      "iqpe_energy_10bit": 0.0,
+      "vqe_energy_1k": 0.0,
+      "vqe_energy_10k": 0.0
+    },
+    {
+      "system": "FeO",
+      "method": "ORMAS",
+      "basis": "cc-pVDZ",
+      "energy": -1337.1445885652877,
+      "energy_error_mha": 0.3826482588920044,
+      "n_det": 225,
+      "t_fermionic": 0.22397467913106084,
+      "n_qubits": 16,
+      "n_pauli_terms": 5793,
+      "energy_qubit_solve": -1337.1449712138565,
+      "t_qubit_mapping": 0.23338515893556178,
+      "circuit_total_gates": 116445,
+      "circuit_cnot_count": 58464,
+      "circuit_rotation_count": 5348,
+      "circuit_depth": 116445,
+      "gate_counts": {
+        "cx": 58464,
+        "crz": 5348,
+        "sdg": 8772,
+        "h": 35088,
+        "s": 8772,
+        "p": 1
+      },
+      "state_prep_gates": 95319,
+      "state_prep_cnots": 16408,
+      "state_prep_n_det": 225,
+      "iqpe_energy_6bit": 0.0,
+      "iqpe_energy_10bit": 0.0,
+      "vqe_energy_1k": 0.0,
+      "vqe_energy_10k": 0.0
+    }
+  ]
+}

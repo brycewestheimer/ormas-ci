@@ -1,0 +1,164 @@
+{
+  "metadata": {
+    "python_version": "3.13.7",
+    "numpy_version": "1.26.4",
+    "repeats": 3,
+    "timestamp": "2026-03-27T14:29:18"
+  },
+  "results": [
+    {
+      "system": "H2/STO-3G",
+      "method": "PySCF FCI",
+      "n_det": 4,
+      "n_excitation_ops": -1,
+      "energy_hartree": -1.137283834488502,
+      "t_enum_s": 0.0,
+      "t_hamiltonian_s": 0.0,
+      "t_diag_s": 0.0,
+      "t_total_s": 0.0008688769303262234
+    },
+    {
+      "system": "H2/STO-3G",
+      "method": "ORMAS (full CAS)",
+      "n_det": 4,
+      "n_excitation_ops": 2,
+      "energy_hartree": -1.137283834488502,
+      "t_enum_s": 2.0500971004366875e-05,
+      "t_hamiltonian_s": 6.50300644338131e-05,
+      "t_diag_s": 1.3339100405573845e-05,
+      "t_total_s": 9.956792928278446e-05
+    },
+    {
+      "system": "H2O/cc-pVTZ",
+      "method": "PySCF FCI",
+      "n_det": 100,
+      "n_excitation_ops": -1,
+      "energy_hartree": -76.05873179129537,
+      "t_enum_s": 0.0,
+      "t_hamiltonian_s": 0.0,
+      "t_diag_s": 0.0,
+      "t_total_s": 0.27233602898195386
+    },
+    {
+      "system": "H2O/cc-pVTZ",
+      "method": "ORMAS (full CAS)",
+      "n_det": 100,
+      "n_excitation_ops": 686,
+      "energy_hartree": -76.05873179129537,
+      "t_enum_s": 5.598110146820545e-05,
+      "t_hamiltonian_s": 0.004716063849627972,
+      "t_diag_s": 0.0008189610671252012,
+      "t_total_s": 0.00559168285690248
+    },
+    {
+      "system": "H2O/cc-pVTZ",
+      "method": "RASCI",
+      "n_det": 13,
+      "n_excitation_ops": 18,
+      "energy_hartree": -76.05711408311932,
+      "t_enum_s": 5.235802382230759e-05,
+      "t_hamiltonian_s": 0.0002755499444901943,
+      "t_diag_s": 2.4436041712760925e-05,
+      "t_total_s": 0.00035235099494457245
+    },
+    {
+      "system": "H2O/cc-pVTZ",
+      "method": "ORMAS restricted",
+      "n_det": 91,
+      "n_excitation_ops": 576,
+      "energy_hartree": -76.0587317191404,
+      "t_enum_s": 8.185207843780518e-05,
+      "t_hamiltonian_s": 0.004268042976036668,
+      "t_diag_s": 0.0006380260456353426,
+      "t_total_s": 0.005014975089579821
+    },
+    {
+      "system": "N2/STO-3G",
+      "method": "PySCF FCI",
+      "n_det": 400,
+      "n_excitation_ops": -1,
+      "energy_hartree": -107.61734443737421,
+      "t_enum_s": 0.0,
+      "t_hamiltonian_s": 0.0,
+      "t_diag_s": 0.0,
+      "t_total_s": 0.2598945589270443
+    },
+    {
+      "system": "N2/STO-3G",
+      "method": "ORMAS (full CAS)",
+      "n_det": 400,
+      "n_excitation_ops": 5432,
+      "energy_hartree": -107.6173444373742,
+      "t_enum_s": 0.00010626879520714283,
+      "t_hamiltonian_s": 0.031241962919011712,
+      "t_diag_s": 0.026616676012054086,
+      "t_total_s": 0.05793670495040715
+    },
+    {
+      "system": "N2/STO-3G",
+      "method": "RASCI",
+      "n_det": 236,
+      "n_excitation_ops": 2194,
+      "energy_hartree": -107.61014333251039,
+      "t_enum_s": 0.000193864107131958,
+      "t_hamiltonian_s": 0.012358073145151138,
+      "t_diag_s": 0.006480345036834478,
+      "t_total_s": 0.01915483409538865
+    },
+    {
+      "system": "N2/STO-3G",
+      "method": "ORMAS restricted",
+      "n_det": 280,
+      "n_excitation_ops": 2898,
+      "energy_hartree": -107.60926261020666,
+      "t_enum_s": 0.00023167021572589874,
+      "t_hamiltonian_s": 0.017318876925855875,
+      "t_diag_s": 0.010928735136985779,
+      "t_total_s": 0.028829284012317657
+    },
+    {
+      "system": "N2/cc-pVDZ",
+      "method": "PySCF FCI",
+      "n_det": 4900,
+      "n_excitation_ops": -1,
+      "energy_hartree": -109.03266548520433,
+      "t_enum_s": 0.0,
+      "t_hamiltonian_s": 0.0,
+      "t_diag_s": 0.0,
+      "t_total_s": 0.27671713288873434
+    },
+    {
+      "system": "N2/cc-pVDZ",
+      "method": "ORMAS (full CAS)",
+      "n_det": 4900,
+      "n_excitation_ops": 197238,
+      "energy_hartree": -109.03266548540776,
+      "t_enum_s": 0.0002940341364592314,
+      "t_hamiltonian_s": 1.51841497188434,
+      "t_diag_s": 54.531655417056754,
+      "t_total_s": 56.06282848189585
+    },
+    {
+      "system": "N2/cc-pVDZ",
+      "method": "RASCI",
+      "n_det": 928,
+      "n_excitation_ops": 16476,
+      "energy_hartree": -109.03168430790001,
+      "t_enum_s": 0.0003746191505342722,
+      "t_hamiltonian_s": 0.21415654406882823,
+      "t_diag_s": 0.583087625913322,
+      "t_total_s": 0.7976217120885849
+    },
+    {
+      "system": "N2/cc-pVDZ",
+      "method": "ORMAS restricted",
+      "n_det": 3258,
+      "n_excitation_ops": 103608,
+      "energy_hartree": -109.02476750522948,
+      "t_enum_s": 0.0008703700732439756,
+      "t_hamiltonian_s": 1.378638701979071,
+      "t_diag_s": 23.211804230930284,
+      "t_total_s": 24.38748522591777
+    }
+  ]
+}
