@@ -1,9 +1,16 @@
 {
   "metadata": {
-    "python_version": "3.13.7",
-    "numpy_version": "1.26.4",
+    "python_version": "3.11.15",
+    "numpy_version": "2.3.5",
     "repeats": 3,
-    "timestamp": "2026-03-27T14:29:18"
+    "timestamp": "2026-03-28T00:08:42",
+    "qubit_hamiltonian": {
+      "n_qubits": 14,
+      "n_pauli_terms": 1086,
+      "sparsity": 0.9999959543347359,
+      "t_hamiltonian_construct_s": 0.01063843799784081,
+      "t_qubit_mapping_s": 0.037869478001084644
+    }
   },
   "results": [
     {
@@ -11,11 +18,11 @@
       "method": "PySCF FCI",
       "n_det": 4,
       "n_excitation_ops": -1,
-      "energy_hartree": -1.137283834488502,
+      "energy_hartree": -1.1372838344885023,
       "t_enum_s": 0.0,
       "t_hamiltonian_s": 0.0,
       "t_diag_s": 0.0,
-      "t_total_s": 0.0008688769303262234
+      "t_total_s": 0.002593544002593262
     },
     {
       "system": "H2/STO-3G",
@@ -23,142 +30,186 @@
       "n_det": 4,
       "n_excitation_ops": 2,
       "energy_hartree": -1.137283834488502,
-      "t_enum_s": 2.0500971004366875e-05,
-      "t_hamiltonian_s": 6.50300644338131e-05,
-      "t_diag_s": 1.3339100405573845e-05,
-      "t_total_s": 9.956792928278446e-05
+      "t_enum_s": 2.9367001843638718e-05,
+      "t_hamiltonian_s": 8.94759978109505e-05,
+      "t_diag_s": 3.065199780394323e-05,
+      "t_total_s": 0.00015040599828353152
     },
     {
       "system": "H2O/cc-pVTZ",
       "method": "PySCF FCI",
       "n_det": 100,
       "n_excitation_ops": -1,
-      "energy_hartree": -76.05873179129537,
+      "energy_hartree": -76.05873179129543,
       "t_enum_s": 0.0,
       "t_hamiltonian_s": 0.0,
       "t_diag_s": 0.0,
-      "t_total_s": 0.27233602898195386
+      "t_total_s": 0.15807160999975167
     },
     {
       "system": "H2O/cc-pVTZ",
       "method": "ORMAS (full CAS)",
       "n_det": 100,
-      "n_excitation_ops": 686,
-      "energy_hartree": -76.05873179129537,
-      "t_enum_s": 5.598110146820545e-05,
-      "t_hamiltonian_s": 0.004716063849627972,
-      "t_diag_s": 0.0008189610671252012,
-      "t_total_s": 0.00559168285690248
+      "n_excitation_ops": 768,
+      "energy_hartree": -76.05873179129543,
+      "t_enum_s": 5.285600127535872e-05,
+      "t_hamiltonian_s": 0.008598073000030126,
+      "t_diag_s": 0.0007684049996896647,
+      "t_total_s": 0.009720515998196788
     },
     {
       "system": "H2O/cc-pVTZ",
       "method": "RASCI",
       "n_det": 13,
       "n_excitation_ops": 18,
-      "energy_hartree": -76.05711408311932,
-      "t_enum_s": 5.235802382230759e-05,
-      "t_hamiltonian_s": 0.0002755499444901943,
-      "t_diag_s": 2.4436041712760925e-05,
-      "t_total_s": 0.00035235099494457245
+      "energy_hartree": -76.05711408311939,
+      "t_enum_s": 8.044499918469228e-05,
+      "t_hamiltonian_s": 0.00028367100094328634,
+      "t_diag_s": 2.9843002266716212e-05,
+      "t_total_s": 0.0004426730010891333
     },
     {
       "system": "H2O/cc-pVTZ",
       "method": "ORMAS restricted",
       "n_det": 91,
-      "n_excitation_ops": 576,
-      "energy_hartree": -76.0587317191404,
-      "t_enum_s": 8.185207843780518e-05,
-      "t_hamiltonian_s": 0.004268042976036668,
-      "t_diag_s": 0.0006380260456353426,
-      "t_total_s": 0.005014975089579821
+      "n_excitation_ops": 636,
+      "energy_hartree": -76.05873171914047,
+      "t_enum_s": 0.0001251359972229693,
+      "t_hamiltonian_s": 0.0071974820020841435,
+      "t_diag_s": 0.0072769050020724535,
+      "t_total_s": 0.014741046998096863
     },
     {
       "system": "N2/STO-3G",
       "method": "PySCF FCI",
       "n_det": 400,
       "n_excitation_ops": -1,
-      "energy_hartree": -107.61734443737421,
+      "energy_hartree": -107.61734443737419,
       "t_enum_s": 0.0,
       "t_hamiltonian_s": 0.0,
       "t_diag_s": 0.0,
-      "t_total_s": 0.2598945589270443
+      "t_total_s": 0.17108673899929272
     },
     {
       "system": "N2/STO-3G",
       "method": "ORMAS (full CAS)",
       "n_det": 400,
       "n_excitation_ops": 5432,
-      "energy_hartree": -107.6173444373742,
-      "t_enum_s": 0.00010626879520714283,
-      "t_hamiltonian_s": 0.031241962919011712,
-      "t_diag_s": 0.026616676012054086,
-      "t_total_s": 0.05793670495040715
+      "energy_hartree": -107.61734443737419,
+      "t_enum_s": 0.00010069299969472922,
+      "t_hamiltonian_s": 0.07057976400028565,
+      "t_diag_s": 0.013668797000718769,
+      "t_total_s": 0.08163203799995244
     },
     {
       "system": "N2/STO-3G",
       "method": "RASCI",
       "n_det": 236,
       "n_excitation_ops": 2194,
-      "energy_hartree": -107.61014333251039,
-      "t_enum_s": 0.000193864107131958,
-      "t_hamiltonian_s": 0.012358073145151138,
-      "t_diag_s": 0.006480345036834478,
-      "t_total_s": 0.01915483409538865
+      "energy_hartree": -107.61014333251033,
+      "t_enum_s": 0.0003382220020284876,
+      "t_hamiltonian_s": 0.03068983100092737,
+      "t_diag_s": 0.007495778001612052,
+      "t_total_s": 0.03853545200036024
     },
     {
       "system": "N2/STO-3G",
       "method": "ORMAS restricted",
       "n_det": 280,
       "n_excitation_ops": 2898,
-      "energy_hartree": -107.60926261020666,
-      "t_enum_s": 0.00023167021572589874,
-      "t_hamiltonian_s": 0.017318876925855875,
-      "t_diag_s": 0.010928735136985779,
-      "t_total_s": 0.028829284012317657
+      "energy_hartree": -107.60926261020663,
+      "t_enum_s": 0.00041301300007035024,
+      "t_hamiltonian_s": 0.038828770997497486,
+      "t_diag_s": 0.005280779998429352,
+      "t_total_s": 0.04469201800020528
     },
     {
       "system": "N2/cc-pVDZ",
       "method": "PySCF FCI",
       "n_det": 4900,
       "n_excitation_ops": -1,
-      "energy_hartree": -109.03266548520433,
+      "energy_hartree": -109.0326654852121,
       "t_enum_s": 0.0,
       "t_hamiltonian_s": 0.0,
       "t_diag_s": 0.0,
-      "t_total_s": 0.27671713288873434
+      "t_total_s": 0.16989543399904505
     },
     {
       "system": "N2/cc-pVDZ",
       "method": "ORMAS (full CAS)",
       "n_det": 4900,
-      "n_excitation_ops": 197238,
-      "energy_hartree": -109.03266548540776,
-      "t_enum_s": 0.0002940341364592314,
-      "t_hamiltonian_s": 1.51841497188434,
-      "t_diag_s": 54.531655417056754,
-      "t_total_s": 56.06282848189585
+      "n_excitation_ops": 192616,
+      "energy_hartree": -109.03266548540772,
+      "t_enum_s": 0.00032477700005983934,
+      "t_hamiltonian_s": 1.8651386950004962,
+      "t_diag_s": 7.347804135999468,
+      "t_total_s": 9.197856071001297
     },
     {
       "system": "N2/cc-pVDZ",
       "method": "RASCI",
       "n_det": 928,
-      "n_excitation_ops": 16476,
-      "energy_hartree": -109.03168430790001,
-      "t_enum_s": 0.0003746191505342722,
-      "t_hamiltonian_s": 0.21415654406882823,
-      "t_diag_s": 0.583087625913322,
-      "t_total_s": 0.7976217120885849
+      "n_excitation_ops": 15866,
+      "energy_hartree": -109.03168804029087,
+      "t_enum_s": 0.00044128599984105676,
+      "t_hamiltonian_s": 0.1583930529995996,
+      "t_diag_s": 0.08398840900190407,
+      "t_total_s": 0.2220080639999651
     },
     {
       "system": "N2/cc-pVDZ",
       "method": "ORMAS restricted",
       "n_det": 3258,
-      "n_excitation_ops": 103608,
-      "energy_hartree": -109.02476750522948,
-      "t_enum_s": 0.0008703700732439756,
-      "t_hamiltonian_s": 1.378638701979071,
-      "t_diag_s": 23.211804230930284,
-      "t_total_s": 24.38748522591777
+      "n_excitation_ops": 100670,
+      "energy_hartree": -109.02517961792144,
+      "t_enum_s": 0.0006764110003132373,
+      "t_hamiltonian_s": 0.93215307599894,
+      "t_diag_s": 1.6958027159998892,
+      "t_total_s": 2.623357042000862
+    },
+    {
+      "system": "H2O/STO-3G (QDK)",
+      "method": "PySCF FCI",
+      "n_det": 36,
+      "n_excitation_ops": -1,
+      "energy_hartree": -74.9705030441034,
+      "t_enum_s": 0.0,
+      "t_hamiltonian_s": 0.0,
+      "t_diag_s": 0.0,
+      "t_total_s": 0.0018844609985535499
+    },
+    {
+      "system": "H2O/STO-3G (QDK)",
+      "method": "QDK+ORMAS full",
+      "n_det": 36,
+      "n_excitation_ops": 104,
+      "energy_hartree": -74.97050304410338,
+      "t_enum_s": 2.4083998141577467e-05,
+      "t_hamiltonian_s": 0.0010695510027289856,
+      "t_diag_s": 0.00010199900134466588,
+      "t_total_s": 0.0011960810006712563
+    },
+    {
+      "system": "H2O/STO-3G (QDK)",
+      "method": "QDK+ORMAS restr",
+      "n_det": 35,
+      "n_excitation_ops": 98,
+      "energy_hartree": -74.97049201938425,
+      "t_enum_s": 6.103600026108325e-05,
+      "t_hamiltonian_s": 0.0010172819966101088,
+      "t_diag_s": 0.00011442899995017797,
+      "t_total_s": 0.0011877299984917045
+    },
+    {
+      "system": "H2O/STO-3G (QDK)",
+      "method": "QDK+RASCI",
+      "n_det": 22,
+      "n_excitation_ops": 44,
+      "energy_hartree": -74.96431141260413,
+      "t_enum_s": 7.573100083391182e-05,
+      "t_hamiltonian_s": 0.0004725320031866431,
+      "t_diag_s": 4.4063002860639244e-05,
+      "t_total_s": 0.0005969640005787369
     }
   ]
 }

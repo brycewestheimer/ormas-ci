@@ -85,18 +85,30 @@ python benchmarks/bench_qdk_quantum.py                          # All systems, c
 python benchmarks/bench_qdk_quantum.py --systems ethylene_dz    # Specific system
 python benchmarks/bench_qdk_quantum.py --iqpe                   # + real IQPE simulation
 python benchmarks/bench_qdk_quantum.py --vqe                    # + VQE energy estimation
-python benchmarks/bench_qdk_quantum.py --all                    # Everything
-python benchmarks/bench_qdk_quantum.py --all --quick            # Fast mode (6-bit, 1K shots)
+python benchmarks/bench_qdk_quantum.py --resource-estimate       # + fault-tolerant estimates
+python benchmarks/bench_qdk_quantum.py --wfn-filter              # + wfn-aware filtering
+python benchmarks/bench_qdk_quantum.py --all                     # Everything
+python benchmarks/bench_qdk_quantum.py --all --quick             # Fast mode (6-bit, 1K shots)
 ```
 
 ### What Is Measured
 
 - **Pauli terms**: Real count from `QdkQubitMapper.run()` Jordan-Wigner mapping
+- **Hamiltonian 1-norm (lambda)**: `qubit_ham.schatten_norm` — sum of |Pauli
+  coefficients|. Determines QPE iteration count: `n_iter ~ lambda / epsilon`
 - **Gate counts**: Real CNOTs and rotations from QASM parsing of `PauliSequenceMapper` circuits
 - **Qubit solve**: Classical diagonalization via QDK's Davidson eigensolver
 - **IQPE energy**: Real iterative QPE simulation via `qdk_full_state_simulator`
 - **VQE energy**: Shot-based expectation value via `qdk_base_simulator`
 - **Determinant reduction**: RASCI/ORMAS vs full CASCI determinant count
+- **Fault-tolerant resource estimates** (`--resource-estimate`): Physical qubit
+  count, runtime, code distance, T-state count from Azure Quantum Resource
+  Estimator via `qsharp.estimator.LogicalCounts.estimate()`. Uses Majorana
+  qubit model (ns gate time, 1e-6 error rate) with Floquet QEC code
+- **Wavefunction-aware filtering** (`--wfn-filter`): Pauli term reduction from
+  evaluating expectation values against the method-specific CI wavefunction.
+  Terms with 0 expectation removed; +/-1 terms treated classically. ORMAS
+  wavefunctions enable more aggressive filtering
 
 ### Output
 

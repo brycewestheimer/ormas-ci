@@ -112,7 +112,7 @@ bottleneck for typical ORMAS spaces. Further performance gains require:
 3. **OpenMP parallelism** in custom C extensions for thread-level
    parallelism on the sigma vector computation (Phase 4).
 
-See `FUTURE_DEVELOPMENT.md` (Phases 3-4) for details.
+See the [Development Roadmap](future.md) for details.
 
 ## Quantum Resource Metrics
 

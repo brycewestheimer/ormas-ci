@@ -31,7 +31,7 @@ Design decisions, tradeoffs, and rationale.
 - [QDK/Chemistry Integration Path](design/qdk_integration.md)
 - [Subspace Configuration Model](design/subspace_model.md)
 - [Performance Considerations](design/performance.md)
-- [Future Directions](design/future.md)
+- [Development Roadmap](design/future.md)
 
 ## Integration
 

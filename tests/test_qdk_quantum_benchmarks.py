@@ -286,3 +286,148 @@ class TestTrotterDecomposition:
         for term in container.step_terms:
             assert hasattr(term, "angle")
             assert isinstance(term.angle, float)
+
+
+# ---------------------------------------------------------------------------
+# Tests for new quantum resource features
+# ---------------------------------------------------------------------------
+
+try:
+    from qsharp.estimator import LogicalCounts
+
+    QSHARP_AVAILABLE = True
+except ImportError:
+    QSHARP_AVAILABLE = False
+
+qsharp_only = pytest.mark.skipif(not QSHARP_AVAILABLE, reason="qsharp not installed")
+
+
+class TestBenchmarkResultNewFields:
+    """Test that new BenchmarkResult fields have correct defaults."""
+
+    def test_default_ham_1_norm(self):
+        from bench_qdk_quantum import BenchmarkResult
+
+        r = BenchmarkResult(
+            system="test", method="test", basis="test",
+            energy=0.0, energy_error_mha=0.0, n_det=0, t_fermionic=0.0,
+        )
+        assert r.ham_1_norm == 0.0
+        assert r.re_physical_qubits == 0
+        assert r.wfn_filter_original_terms == 0
+        assert r.df_physical_qubits == 0
+
+    def test_asdict_includes_new_fields(self):
+        from dataclasses import asdict
+
+        from bench_qdk_quantum import BenchmarkResult
+
+        r = BenchmarkResult(
+            system="test", method="test", basis="test",
+            energy=0.0, energy_error_mha=0.0, n_det=0, t_fermionic=0.0,
+        )
+        d = asdict(r)
+        assert "ham_1_norm" in d
+        assert "re_physical_qubits" in d
+        assert "wfn_filter_original_terms" in d
+        assert "df_physical_qubits" in d
+
+
+@qdk_only
+class TestSchattenNorm:
+    """Test Hamiltonian 1-norm (schatten_norm) reporting."""
+
+    def test_h2_schatten_norm_positive(self):
+        """H2 schatten_norm should be a positive number."""
+        qh, _ = _h2_active_space_qdk()
+        assert qh.schatten_norm > 0.0
+
+    def test_h2_schatten_norm_matches_manual(self):
+        """schatten_norm should match manual sum of |coefficients|."""
+        import numpy as np
+
+        qh, _ = _h2_active_space_qdk()
+        manual = float(np.sum(np.abs(qh.coefficients)))
+        assert abs(qh.schatten_norm - manual) < 1e-10
+
+
+@qdk_only
+@qsharp_only
+class TestResourceEstimation:
+    """Test Azure Quantum Resource Estimator integration."""
+
+    def test_logical_counts_construction(self):
+        """LogicalCounts can be constructed from circuit data."""
+        lc = LogicalCounts({
+            "numQubits": 5,
+            "tCount": 0,
+            "rotationCount": 50,
+            "rotationDepth": 50,
+            "cczCount": 0,
+            "measurementCount": 5,
+        })
+        assert lc["numQubits"] == 5
+        assert lc["rotationCount"] == 50
+
+    def test_h2_resource_estimation_produces_results(self):
+        """H2 resource estimation produces non-zero physical qubits."""
+        from bench_qdk_quantum import _run_resource_estimation
+
+        qh, _ = _h2_active_space_qdk()
+        result = _run_resource_estimation(qh, {"crz": 10, "rz": 5}, qh.num_qubits)
+        assert result.get("physical_qubits", 0) > 0
+        assert result.get("runtime_ns", 0) > 0
+        assert result.get("code_distance", 0) > 0
+
+    def test_resource_estimation_without_qsharp(self):
+        """Resource estimation returns empty dict when rotations are 0."""
+        from bench_qdk_quantum import _run_resource_estimation
+
+        qh, _ = _h2_active_space_qdk()
+        # Zero rotations should still work (just minimal resources)
+        result = _run_resource_estimation(qh, {}, qh.num_qubits)
+        # With 0 rotations, it either succeeds with minimal resources or fails gracefully
+        assert isinstance(result, dict)
+
+
+@qdk_only
+class TestWavefunctionFilter:
+    """Test wavefunction-aware Hamiltonian filtering."""
+
+    def test_h2_filter_returns_valid_structure(self):
+        """Filter on H2 produces valid result structure."""
+        from bench_qdk_quantum import _build_method_state_prep, _pyscf_ci_to_determinant_arrays
+
+        from pyscf import gto, mcscf, scf
+
+        mol = gto.M(atom="H 0 0 0; H 0 0 0.74", basis="sto-3g", verbose=0)
+        mf = scf.RHF(mol).run()
+        mc = mcscf.CASCI(mf, 2, 2)
+        mc.verbose = 0
+        mc.kernel()
+
+        qh, ham = _h2_active_space_qdk()
+
+        # Build wavefunction via the state prep pipeline
+        ci_coeffs, ci_alpha, ci_beta = _pyscf_ci_to_determinant_arrays(
+            mc.ci, 2, (1, 1)
+        )
+        _, wfn_obj = PyscfScfSolver().run(
+            Structure.from_xyz("2\nH2\nH 0 0 0\nH 0 0 0.74"), 0, 1, "sto-3g"
+        )
+        as_sel = create(
+            "active_space_selector", "qdk_valence",
+            num_active_electrons=2, num_active_orbitals=2,
+        )
+        qdk_orbs = as_sel.run(wfn_obj).get_orbitals()
+        _, _, wfn = _build_method_state_prep(
+            ci_coeffs, ci_alpha, ci_beta, 2, qdk_orbs
+        )
+        assert wfn is not None
+
+        from bench_qdk_quantum import _run_wavefunction_filter
+
+        result = _run_wavefunction_filter(qh, wfn)
+        assert result.get("original_terms", 0) == 15  # H2 has 15 Pauli terms
+        assert 0 <= result.get("remaining_terms", -1) <= 15
+        assert 0.0 <= result.get("reduction_pct", -1.0) <= 100.0

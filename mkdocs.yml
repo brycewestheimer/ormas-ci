@@ -54,7 +54,7 @@ nav:
     - QDK Integration: design/qdk_integration.md
     - Subspace Model: design/subspace_model.md
     - Performance: design/performance.md
-    - Future Directions: design/future.md
+    - Development Roadmap: design/future.md
   - Integration:
     - PySCF CASCI: integration/pyscf_casci.md
     - QDK Chemistry: integration/qdk_chemistry.md

@@ -55,11 +55,21 @@ try:
     from qdk_chemistry.data.time_evolution.controlled_time_evolution import (
         ControlledTimeEvolutionUnitary,
     )
+    from qdk_chemistry.data.qubit_hamiltonian import (
+        filter_and_group_pauli_ops_from_wavefunction,
+    )
     from qdk_chemistry.plugins.pyscf.scf_solver import PyscfScfSolver
 
     QDK_AVAILABLE = True
 except ImportError:
     QDK_AVAILABLE = False
+
+try:
+    from qsharp.estimator import LogicalCounts, QECScheme, QubitParams
+
+    QSHARP_ESTIMATOR_AVAILABLE = True
+except ImportError:
+    QSHARP_ESTIMATOR_AVAILABLE = False
 
 
 # ---------------------------------------------------------------------------
@@ -106,6 +116,32 @@ class BenchmarkResult:
     # VQE-style energy estimation (real shots, method-specific state prep)
     vqe_energy_1k: float = 0.0
     vqe_energy_10k: float = 0.0
+
+    # Hamiltonian 1-norm (schatten norm / lambda) — determines QPE iteration count
+    ham_1_norm: float = 0.0
+
+    # Azure Quantum Resource Estimator (fault-tolerant physical estimates)
+    re_physical_qubits: int = 0
+    re_runtime_ns: int = 0
+    re_runtime_formatted: str = ""
+    re_logical_qubits: int = 0
+    re_logical_depth: int = 0
+    re_code_distance: int = 0
+    re_t_states: int = 0
+    re_t_factories: int = 0
+
+    # Wavefunction-aware Hamiltonian filtering
+    wfn_filter_original_terms: int = 0
+    wfn_filter_remaining_terms: int = 0
+    wfn_filter_n_groups: int = 0
+    wfn_filter_classical_energy: float = 0.0
+    wfn_filter_reduction_pct: float = 0.0
+
+    # Double-factorized qubitization resource estimation (placeholder)
+    df_physical_qubits: int = 0
+    df_runtime_ns: int = 0
+    df_t_states: int = 0
+    df_logical_qubits: int = 0
 
 
 # ---------------------------------------------------------------------------
@@ -454,7 +490,7 @@ def _build_method_state_prep(ci_vector, alpha_strings, beta_strings, ncas, qdk_o
     Constructs a QDK Wavefunction from the CI coefficients and restricted
     determinant list, then uses SparseIsometryGF2X to build a real circuit.
 
-    Returns (circuit, gate_counts_dict) or (None, {}) on failure.
+    Returns (circuit, gate_counts_dict, wavefunction) or (None, {}, None) on failure.
     """
     try:
         configs = _bitstrings_to_configurations(alpha_strings, beta_strings, ncas)
@@ -463,10 +499,10 @@ def _build_method_state_prep(ci_vector, alpha_strings, beta_strings, ncas, qdk_o
         sp = SparseIsometryGF2XStatePreparation()
         circuit = sp.run(wfn)
         gate_counts = parse_gate_counts(circuit.qasm)
-        return circuit, gate_counts
+        return circuit, gate_counts, wfn
     except Exception:
         logger.warning("State prep circuit construction failed", exc_info=True)
-        return None, {}
+        return None, {}, None
 
 
 # ---------------------------------------------------------------------------
@@ -584,6 +620,150 @@ def _build_real_circuit_metrics(qubit_ham) -> dict:
     }
 
 
+def _run_resource_estimation(qubit_ham, state_prep_gate_counts, n_qubits,
+                             error_budget=0.01):
+    """Run Azure Quantum Resource Estimator via LogicalCounts.estimate().
+
+    Combines Hamiltonian Trotter circuit and method-specific state prep
+    circuit logical counts for a full QPE resource estimate.
+
+    Args:
+        qubit_ham: QDK QubitHamiltonian (for Trotter circuit rotation counts).
+        state_prep_gate_counts: Gate counts dict from state prep QASM parsing.
+        n_qubits: Number of qubits in the Hamiltonian.
+        error_budget: Target error budget for fault-tolerant estimation.
+
+    Returns:
+        Dict with physical resource estimates, or empty dict on failure.
+    """
+    if not QSHARP_ESTIMATOR_AVAILABLE:
+        return {}
+
+    try:
+        # Get Trotter circuit metrics for rotation counts
+        trotter_metrics = _build_real_circuit_metrics(qubit_ham)
+        trotter_gc = trotter_metrics["gate_counts"]
+
+        # Combine Trotter + state prep rotation counts
+        trotter_rotations = trotter_gc.get("crz", 0) + trotter_gc.get("rz", 0)
+        prep_rotations = (state_prep_gate_counts.get("crz", 0)
+                          + state_prep_gate_counts.get("rz", 0)
+                          + state_prep_gate_counts.get("ry", 0)
+                          + state_prep_gate_counts.get("rx", 0))
+        total_rotations = trotter_rotations + prep_rotations
+
+        # numQubits: Hamiltonian qubits + 1 control qubit for QPE
+        num_qubits = n_qubits + 1
+
+        lc = LogicalCounts({
+            "numQubits": num_qubits,
+            "tCount": 0,
+            "rotationCount": total_rotations,
+            "rotationDepth": total_rotations,  # conservative: sequential
+            "cczCount": 0,
+            "measurementCount": num_qubits,
+        })
+
+        result = lc.estimate(params={
+            "errorBudget": error_budget,
+            "qubitParams": {"name": QubitParams.MAJ_NS_E6},
+            "qecScheme": {"name": QECScheme.FLOQUET_CODE},
+        })
+
+        data = result.data()
+        pc = data.get("physicalCounts", {})
+        bd = pc.get("breakdown", {})
+        fmt = data.get("physicalCountsFormatted", {})
+        lq = data.get("logicalQubit", {})
+
+        return {
+            "physical_qubits": pc.get("physicalQubits", 0),
+            "runtime_ns": pc.get("runtime", 0),
+            "runtime_formatted": fmt.get("runtime", ""),
+            "logical_qubits": bd.get("algorithmicLogicalQubits", 0),
+            "logical_depth": bd.get("logicalDepth", 0),
+            "code_distance": lq.get("codeDistance", 0),
+            "t_states": bd.get("numTstates", 0),
+            "t_factories": bd.get("numTfactories", 0),
+        }
+    except Exception:
+        logger.warning("Resource estimation failed", exc_info=True)
+        return {}
+
+
+def _run_wavefunction_filter(qubit_ham, wfn):
+    """Run wavefunction-aware Hamiltonian filtering.
+
+    Evaluates each Pauli term's expectation value against the CI wavefunction.
+    Terms with zero expectation are removed; terms with +/-1 expectation are
+    treated classically. ORMAS-restricted wavefunctions should allow more
+    aggressive filtering because the constrained determinant space forces
+    more Pauli terms to have deterministic expectation values.
+
+    Returns dict with filtering results, or empty dict on failure.
+    """
+    try:
+        grouped_hams, classical_coeffs = filter_and_group_pauli_ops_from_wavefunction(
+            hamiltonian=qubit_ham,
+            wavefunction=wfn,
+            abelian_grouping=True,
+            trimming=True,
+        )
+        original_terms = len(qubit_ham.pauli_strings)
+        remaining_terms = sum(len(h.pauli_strings) for h in grouped_hams)
+        n_groups = len(grouped_hams)
+        classical_energy = sum(classical_coeffs)
+        reduction_pct = (
+            (1.0 - remaining_terms / original_terms) * 100.0
+            if original_terms > 0
+            else 0.0
+        )
+        return {
+            "original_terms": original_terms,
+            "remaining_terms": remaining_terms,
+            "n_groups": n_groups,
+            "classical_energy": classical_energy,
+            "reduction_pct": reduction_pct,
+        }
+    except Exception:
+        logger.warning("Wavefunction filtering failed", exc_info=True)
+        return {}
+
+
+def _generate_fcidump(mf, ncas, nelecas, output_path):
+    """Generate FCIDUMP file from PySCF active-space integrals.
+
+    Produces the standard FCIDUMP format consumed by the QDK df-chemistry
+    sample for double-factorized qubitization resource estimation.
+
+    Returns True on success, False on failure.
+    """
+    try:
+        from pyscf.tools import fcidump
+
+        mc_tmp = mcscf.CASCI(mf, ncas, sum(nelecas))
+        mc_tmp.verbose = 0
+        mc_tmp.kernel()
+        fcidump.from_mcscf(mc_tmp, output_path)
+        return True
+    except Exception:
+        logger.warning("FCIDUMP generation failed", exc_info=True)
+        return False
+
+
+def _run_df_resource_estimation(fcidump_path):
+    """Run double-factorized qubitization resource estimation.
+
+    Requires the QDK df-chemistry Q# sample code. Currently a placeholder.
+    See FUTURE_DEVELOPMENT.md for the full implementation plan.
+    """
+    logger.info(
+        "Double-factorized resource estimation not yet implemented. "
+        "See FUTURE_DEVELOPMENT.md for implementation plan."
+    )
+    return {}
+
+
 def _pyscf_ci_to_determinant_arrays(ci_matrix, ncas, nelecas):
     """Convert PySCF's 2D CI matrix to 1D coefficient + determinant arrays.
 
@@ -687,6 +867,8 @@ def run_system_benchmark(
     sys_def: SystemDef,
     run_iqpe: bool = False,
     run_vqe: bool = False,
+    run_resource_estimate: bool = False,
+    run_wfn_filter: bool = False,
     quick: bool = False,
 ) -> list[BenchmarkResult]:
     """Run full benchmark pipeline for one system."""
@@ -727,6 +909,7 @@ def run_system_benchmark(
         qubit_ham, hamiltonian, t_map, wfn_or_orbs = qdk_result
         ref_result.n_qubits = qubit_ham.num_qubits
         ref_result.n_pauli_terms = len(qubit_ham.pauli_strings)
+        ref_result.ham_1_norm = qubit_ham.schatten_norm
         ref_result.t_qubit_mapping = t_map
 
         # Classical qubit solve
@@ -752,13 +935,38 @@ def run_system_benchmark(
         ci_coeffs, ci_alpha, ci_beta = _pyscf_ci_to_determinant_arrays(
             mc.ci, ncas, nelecas
         )
-        cas_prep, cas_prep_gc = _build_method_state_prep(
+        cas_prep, cas_prep_gc, cas_wfn = _build_method_state_prep(
             ci_coeffs, ci_alpha, ci_beta, ncas, qdk_orbs
         )
         if cas_prep:
             ref_result.state_prep_gates = sum(cas_prep_gc.values())
             ref_result.state_prep_cnots = cas_prep_gc.get("cx", 0)
             ref_result.state_prep_n_det = n_det_full
+
+        # Resource estimation with CAS state prep
+        if run_resource_estimate and cas_prep_gc:
+            re_result = _run_resource_estimation(
+                qubit_ham, cas_prep_gc, qubit_ham.num_qubits
+            )
+            if re_result:
+                ref_result.re_physical_qubits = re_result["physical_qubits"]
+                ref_result.re_runtime_ns = re_result["runtime_ns"]
+                ref_result.re_runtime_formatted = re_result["runtime_formatted"]
+                ref_result.re_logical_qubits = re_result["logical_qubits"]
+                ref_result.re_logical_depth = re_result["logical_depth"]
+                ref_result.re_code_distance = re_result["code_distance"]
+                ref_result.re_t_states = re_result["t_states"]
+                ref_result.re_t_factories = re_result["t_factories"]
+
+        # Wavefunction-aware Hamiltonian filtering with CAS wavefunction
+        if run_wfn_filter and cas_wfn:
+            wf_result = _run_wavefunction_filter(qubit_ham, cas_wfn)
+            if wf_result:
+                ref_result.wfn_filter_original_terms = wf_result["original_terms"]
+                ref_result.wfn_filter_remaining_terms = wf_result["remaining_terms"]
+                ref_result.wfn_filter_n_groups = wf_result["n_groups"]
+                ref_result.wfn_filter_classical_energy = wf_result["classical_energy"]
+                ref_result.wfn_filter_reduction_pct = wf_result["reduction_pct"]
 
         # IQPE and VQE with CAS state prep
         if run_iqpe and cas_prep:
@@ -789,6 +997,7 @@ def run_system_benchmark(
         # Copy Hamiltonian metrics (same molecule)
         result.n_qubits = ref_result.n_qubits
         result.n_pauli_terms = ref_result.n_pauli_terms
+        result.ham_1_norm = ref_result.ham_1_norm
         result.energy_qubit_solve = ref_result.energy_qubit_solve
         result.t_qubit_mapping = ref_result.t_qubit_mapping
         result.circuit_total_gates = ref_result.circuit_total_gates
@@ -803,13 +1012,38 @@ def run_system_benchmark(
             if hasattr(wfn_or_orbs, "get_orbitals")
             else wfn_or_orbs
         )
-        prep, prep_gc = _build_method_state_prep(
+        prep, prep_gc, method_wfn = _build_method_state_prep(
             ci_vec, a_strings, b_strings, ncas, qdk_orbs
         )
         if prep:
             result.state_prep_gates = sum(prep_gc.values())
             result.state_prep_cnots = prep_gc.get("cx", 0)
             result.state_prep_n_det = len(a_strings)
+
+        # Resource estimation with method-specific state prep
+        if run_resource_estimate and prep_gc:
+            re_result = _run_resource_estimation(
+                qubit_ham, prep_gc, qubit_ham.num_qubits
+            )
+            if re_result:
+                result.re_physical_qubits = re_result["physical_qubits"]
+                result.re_runtime_ns = re_result["runtime_ns"]
+                result.re_runtime_formatted = re_result["runtime_formatted"]
+                result.re_logical_qubits = re_result["logical_qubits"]
+                result.re_logical_depth = re_result["logical_depth"]
+                result.re_code_distance = re_result["code_distance"]
+                result.re_t_states = re_result["t_states"]
+                result.re_t_factories = re_result["t_factories"]
+
+        # Wavefunction-aware filtering with method-specific wavefunction
+        if run_wfn_filter and method_wfn:
+            wf_result = _run_wavefunction_filter(qubit_ham, method_wfn)
+            if wf_result:
+                result.wfn_filter_original_terms = wf_result["original_terms"]
+                result.wfn_filter_remaining_terms = wf_result["remaining_terms"]
+                result.wfn_filter_n_groups = wf_result["n_groups"]
+                result.wfn_filter_classical_energy = wf_result["classical_energy"]
+                result.wfn_filter_reduction_pct = wf_result["reduction_pct"]
 
         if run_iqpe and prep:
             result.iqpe_energy_6bit = _run_iqpe(
@@ -981,6 +1215,73 @@ def print_results_table(all_results: list[BenchmarkResult], include_quantum: boo
                 print(line2)
             print()
 
+        # Resource estimation table
+        has_re = any(r.re_physical_qubits > 0 for r in all_results)
+        if has_re:
+            print(f"{'='*130}")
+            print(
+                "  FAULT-TOLERANT RESOURCE ESTIMATION "
+                "(Azure Quantum Resource Estimator)"
+            )
+            print(
+                "  Qubit model: Majorana (ns, 1e-6 error). "
+                "QEC: Floquet code. Error budget: 1%."
+            )
+            print(f"{'='*130}")
+            header_re = (
+                f"{'System':<14} {'Method':<8} "
+                f"{'PhysQubits':>11} {'Runtime':>14} {'LogQubits':>10} "
+                f"{'CodeDist':>8} {'T_states':>10} {'T_fact':>6}"
+            )
+            print(header_re)
+            print("-" * 130)
+
+            for r in all_results:
+                if r.re_physical_qubits == 0:
+                    continue
+                line_re = (
+                    f"{r.system:<14} {r.method:<8} "
+                    f"{r.re_physical_qubits:>11,} "
+                    f"{r.re_runtime_formatted:>14} "
+                    f"{r.re_logical_qubits:>10} {r.re_code_distance:>8} "
+                    f"{r.re_t_states:>10,} {r.re_t_factories:>6}"
+                )
+                print(line_re)
+            print()
+
+        # Wavefunction filtering table
+        has_wfn = any(r.wfn_filter_original_terms > 0 for r in all_results)
+        if has_wfn:
+            print(f"{'='*130}")
+            print("  WAVEFUNCTION-AWARE HAMILTONIAN FILTERING")
+            print(
+                "  Pauli terms with 0 expectation removed; "
+                "+/-1 terms treated classically."
+            )
+            print(f"{'='*130}")
+            header_wf = (
+                f"{'System':<14} {'Method':<8} "
+                f"{'Original':>8} {'Remaining':>9} "
+                f"{'Groups':>6} {'Reduction':>9} "
+                f"{'E_classical':>14}"
+            )
+            print(header_wf)
+            print("-" * 130)
+
+            for r in all_results:
+                if r.wfn_filter_original_terms == 0:
+                    continue
+                line_wf = (
+                    f"{r.system:<14} {r.method:<8} "
+                    f"{r.wfn_filter_original_terms:>8} "
+                    f"{r.wfn_filter_remaining_terms:>9} "
+                    f"{r.wfn_filter_n_groups:>6} "
+                    f"{r.wfn_filter_reduction_pct:>8.1f}% "
+                    f"{r.wfn_filter_classical_energy:>14.8f}"
+                )
+                print(line_wf)
+            print()
+
 
 # ---------------------------------------------------------------------------
 # Main
@@ -997,6 +1298,8 @@ Examples:
   python bench_qdk_quantum.py --systems ethylene_dz ozone    # Specific systems
   python bench_qdk_quantum.py --iqpe                         # + IQPE simulation
   python bench_qdk_quantum.py --vqe                          # + VQE estimation
+  python bench_qdk_quantum.py --resource-estimate            # + fault-tolerant estimates
+  python bench_qdk_quantum.py --wfn-filter                   # + wfn-aware filtering
   python bench_qdk_quantum.py --all                          # Everything
   python bench_qdk_quantum.py --all --quick                  # Fast mode (6-bit, 1K shots)
         """,
@@ -1011,6 +1314,16 @@ Examples:
     parser.add_argument("--iqpe", action="store_true", help="Run real IQPE simulation")
     parser.add_argument(
         "--vqe", action="store_true", help="Run VQE-style energy estimation"
+    )
+    parser.add_argument(
+        "--resource-estimate",
+        action="store_true",
+        help="Run Azure Quantum Resource Estimator (fault-tolerant)",
+    )
+    parser.add_argument(
+        "--wfn-filter",
+        action="store_true",
+        help="Run wavefunction-aware Hamiltonian filtering",
     )
     parser.add_argument("--all", action="store_true", help="Run everything")
     parser.add_argument(
@@ -1028,6 +1341,8 @@ Examples:
     if args.all:
         args.iqpe = True
         args.vqe = True
+        args.resource_estimate = True
+        args.wfn_filter = True
 
     systems = args.systems or list(ALL_SYSTEMS.keys())
 
@@ -1040,6 +1355,10 @@ Examples:
         mode.append("IQPE")
     if args.vqe:
         mode.append("VQE")
+    if args.resource_estimate:
+        mode.append("ResourceEstimation")
+    if args.wfn_filter:
+        mode.append("WfnFilter")
     if mode:
         print(f"Quantum simulation: {', '.join(mode)}")
         if args.quick:
@@ -1056,15 +1375,23 @@ Examples:
             sys_def,
             run_iqpe=args.iqpe,
             run_vqe=args.vqe,
+            run_resource_estimate=args.resource_estimate,
+            run_wfn_filter=args.wfn_filter,
             quick=args.quick,
         )
         all_results.extend(results)
 
         for r in results:
             de = f"dE={r.energy_error_mha:+.3f}mHa" if r.method != "CASCI" else ""
+            extras = ""
+            if r.re_physical_qubits > 0:
+                extras += f" phys_q={r.re_physical_qubits:,}"
+            if r.wfn_filter_original_terms > 0:
+                extras += f" pauli_red={r.wfn_filter_reduction_pct:.0f}%"
             print(
                 f"    {r.method:<8} E={r.energy:.8f} n_det={r.n_det:>5} "
-                f"pauli={r.n_pauli_terms:>5} CNOTs={r.circuit_cnot_count:>4} {de}"
+                f"pauli={r.n_pauli_terms:>5} CNOTs={r.circuit_cnot_count:>4} "
+                f"{de}{extras}"
             )
 
     include_quantum = any(r.n_qubits > 0 for r in all_results)
