@@ -183,7 +183,7 @@ def test_determinant_reduction_logged(caplog):
     mc.verbose = 0
     mc.fcisolver = ORMASFCISolver(config)
 
-    with caplog.at_level(logging.INFO, logger="ormas_ci.fcisolver"):
+    with caplog.at_level(logging.INFO, logger="pyscf.ormas_ci.fcisolver"):
         mc.kernel()
 
     assert any("determinant" in r.message.lower() for r in caplog.records), (
