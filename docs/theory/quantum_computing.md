@@ -55,26 +55,30 @@ This approach trades exact inter-subspace correlation for a dramatic
 reduction in qubit requirements, making large molecular systems tractable
 on near-term hardware.
 
-### Why Not Selected CI?
+### Selected CI and Structured Active Spaces
 
-Selected CI (ASCI, CIPSI, etc.) also reduces the determinant count, but
-its determinant space has no regular structure. The included determinants
-depend on the wavefunction being computed, which isn't known beforehand.
+Selected CI (ASCI, CIPSI, etc.) and ORMAS both reduce determinant counts
+relative to full CASCI, but through different mechanisms that interact
+differently with quantum circuit design.
 
-This creates problems for quantum circuit construction:
-- No systematic way to build an ansatz that explores exactly the selected
-  determinants
-- The determinant space can't be factored into independent subspace
-  calculations
-- The space size isn't known until the (classical) selection converges
+Selected CI picks determinants by numerical importance: the algorithm
+identifies which configurations contribute most to the wavefunction.
+This produces compact, accurate classical wavefunctions. The determinant
+set depends on the target state and is determined during the selection
+process.
 
-RAS/ORMAS constraints are defined by orbital structure, which is fixed
-before any calculation. They map directly to circuit construction rules
-and enable hardware-aware resource planning.
+ORMAS picks determinants by structural rules: which orbitals, how many
+electrons per subspace. The determinant set is fixed before any
+calculation runs. These constraints encode directly into ansatz structure,
+which makes circuit depth and qubit counts predictable at design time.
+The local per-subspace structure also enables subspace factorization
+(section 2 above).
 
-Selected CI and RAS/ORMAS are complementary: use selected CI classically
-to understand the wavefunction structure, then use that understanding to
-define ORMAS subspaces for the quantum calculation.
+In a combined workflow, classical selected CI reveals the dominant
+configurations and correlation patterns. That information then guides
+ORMAS subspace definitions for the quantum calculation. See also
+[future.md](../design/future.md) section 3.4 for an ORMAS + selected CI
+hybrid approach that applies both strategies within the same calculation.
 
 ## Connection to QMPI
 
@@ -100,6 +104,6 @@ register, which can be enforced through circuit structure.
 
 ORMAS's determinant-basis representation (which this package produces)
 maps directly to qubit computational basis states under Jordan-Wigner.
-This is one reason why ORMAS (local constraints, determinant basis) is
-preferred over GAS (cumulative constraints, sometimes CSF basis) for
-quantum computing applications.
+This is one reason why ORMAS (local constraints, determinant basis) maps
+more directly to quantum circuit construction than GAS (cumulative
+constraints, sometimes CSF basis) for these applications.

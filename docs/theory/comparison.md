@@ -18,33 +18,34 @@ ORMAS-CI (with RASCI as a special case). Fixed orbitals, local per-subspace
 constraints, arbitrary number of subspaces. CASCI is recovered as a single
 unrestricted subspace.
 
-## ORMAS vs Selected CI (ASCI)
+## ORMAS and Selected CI (ASCI)
 
-These solve the same problem (CASCI is too big) through fundamentally
-different strategies:
+Both reduce full CASCI spaces through different selection strategies:
 
 **ORMAS:** Determinants are selected by structural rules (which orbitals,
 how many electrons). The user defines subspaces based on chemical intuition.
-The determinant space has regular structure that can be predicted before
-running the calculation.
+The determinant space is predictable and fixed before the calculation runs.
 
 **ASCI:** Determinants are selected by numerical importance (which
-configurations have large CI coefficients). The algorithm discovers the
-important determinants adaptively. The determinant space has no regular
-structure; it depends on the specific wavefunction.
+configurations have large CI coefficients). The algorithm identifies the
+most relevant determinants adaptively, producing compact wavefunctions
+tailored to the specific electronic state.
 
 **Tradeoffs:**
-- ASCI is typically more accurate per determinant (it keeps exactly the
-  important ones). ORMAS may include some unimportant determinants and
-  exclude some important ones if the subspace boundaries don't perfectly
-  align with the correlation structure.
-- ORMAS gives the user explicit control and produces a predictable
-  determinant space. ASCI is automatic but its output depends on
-  convergence behavior.
-- ORMAS's structured determinant space maps to quantum circuit ansatze.
-  ASCI's irregular space does not. See
+- ASCI is typically more accurate per determinant since it keeps exactly
+  the important ones. ORMAS may include some less important determinants
+  if the subspace boundaries don't perfectly align with the correlation
+  structure, but gives the user explicit control over the space.
+- ORMAS produces a structured determinant space that maps to quantum
+  circuit ansatze and enables subspace factorization. ASCI's
+  wavefunction-adapted space is optimized for classical accuracy. See
   [quantum_computing.md](quantum_computing.md) for details.
-- ORMAS enables subspace factorization for quantum computing. ASCI does not.
+
+**Complementary use:** Classical ASCI can identify the dominant
+configurations and correlation patterns in a system, which then informs
+how to define ORMAS subspaces. Within an ORMAS-restricted space, selected
+CI can further prune less important determinants. See
+[future.md](../design/future.md) section 3.4.
 
 ## ORMAS vs GAS
 
