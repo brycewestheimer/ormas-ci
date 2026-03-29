@@ -36,7 +36,10 @@ jobs:
           /tmp/pyright-env/bin/pyright --pythonpath /tmp/pyright-env/bin/python
 
       - name: Run tests
-        run: pytest --cov=pyscf.ormas_ci --cov-report=term-missing --cov-report=xml
+        run: |
+          coverage run -m pytest
+          coverage xml
+          coverage report --show-missing
 
       - name: Upload coverage to Codecov
         if: matrix.python-version == '3.12'
