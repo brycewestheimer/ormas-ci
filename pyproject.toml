@@ -67,7 +67,7 @@ include = ["pyscf*", "ormas_ci"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-addopts = "-v --tb=short --import-mode=importlib"
+addopts = "-v --tb=short"
 
 [tool.coverage.run]
 source = ["pyscf.ormas_ci"]

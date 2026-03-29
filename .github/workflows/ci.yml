@@ -24,16 +24,16 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install ".[dev]"
+          pip install -e ".[dev]"
 
       - name: Lint with ruff
         run: ruff check pyscf/ tests/
 
       - name: Type check with pyright
-        run: pyright
-
-      - name: Reinstall editable for tests
-        run: pip install -e .
+        run: |
+          python -m venv /tmp/pyright-env
+          /tmp/pyright-env/bin/pip install ".[dev]"
+          /tmp/pyright-env/bin/pyright
 
       - name: Run tests
         run: pytest --cov=pyscf.ormas_ci --cov-report=term-missing --cov-report=xml
