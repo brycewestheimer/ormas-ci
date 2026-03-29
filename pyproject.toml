@@ -82,7 +82,7 @@ exclude_also = [
 [tool.pyright]
 pythonVersion = "3.11"
 typeCheckingMode = "basic"
-include = ["pyscf"]
+include = ["pyscf/ormas_ci"]
 
 [tool.ruff]
 line-length = 100
