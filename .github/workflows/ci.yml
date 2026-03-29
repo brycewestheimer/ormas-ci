@@ -32,6 +32,9 @@ jobs:
       - name: Type check with pyright
         run: pyright
 
+      - name: Reinstall editable for tests
+        run: pip install -e .
+
       - name: Run tests
         run: pytest --cov=pyscf.ormas_ci --cov-report=term-missing --cov-report=xml
 
