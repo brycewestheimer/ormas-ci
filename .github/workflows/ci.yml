@@ -33,7 +33,7 @@ jobs:
         run: |
           python -m venv /tmp/pyright-env
           /tmp/pyright-env/bin/pip install ".[dev]"
-          /tmp/pyright-env/bin/pyright
+          /tmp/pyright-env/bin/pyright --pythonpath /tmp/pyright-env/bin/python
 
       - name: Run tests
         run: pytest --cov=pyscf.ormas_ci --cov-report=term-missing --cov-report=xml
