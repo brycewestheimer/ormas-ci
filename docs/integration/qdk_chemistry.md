@@ -13,8 +13,11 @@ plugin, requiring no modifications to QDK/Chemistry itself.
 ## Prerequisites
 
 ```bash
-pip install qdk-chemistry pyscf-ormas-ci pyscf
+pip install "pyscf-ormas-ci[qdk]"
 ```
+
+This pulls in `qdk-chemistry` and `pyscf` as extras dependencies.
+Alternatively, install them manually: `pip install qdk-chemistry pyscf-ormas-ci pyscf`.
 
 Note: QDK/Chemistry is new (January 2026) and the installation process
 may evolve. Check the QDK/Chemistry README for current instructions.

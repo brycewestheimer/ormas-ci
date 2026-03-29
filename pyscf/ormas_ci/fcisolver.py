@@ -491,7 +491,7 @@ class ORMASFCISolver(lib.StreamObject):
         def precond(r, e):
             return r / (hdiag_1d - e + self.level_shift)
 
-        energies, ci_vectors = davidson(
+        energies, ci_vectors, conv_flags = davidson(
             aop=sigma_1d,
             x0=v0,
             precond=precond,
@@ -501,7 +501,7 @@ class ORMASFCISolver(lib.StreamObject):
             nroots=self.nroots,
             lindep=self.lindep,
         )
-        return energies, ci_vectors
+        return energies, ci_vectors, all(conv_flags[:self.nroots])
 
     def _solve_eigsh_sci(self, h1e, eri, ncas, nelecas, n_det):
         """ARPACK eigsh with PySCF selected_ci sigma vector (fallback)."""
@@ -515,12 +515,20 @@ class ORMASFCISolver(lib.StreamObject):
             matvec=self._sigma_sci,  # pyright: ignore[reportCallIssue]
             dtype=np.float64,
         )
-        energies, ci_vectors = eigsh(
-            h_op, k=self.nroots, which='SA',
-            v0=v0, tol=self.conv_tol,  # type: ignore[arg-type]
-        )
+        from scipy.sparse.linalg import ArpackNoConvergence
+        try:
+            energies, ci_vectors = eigsh(
+                h_op, k=self.nroots, which='SA',
+                v0=v0, tol=self.conv_tol,  # type: ignore[arg-type]
+            )
+            converged = True
+        except ArpackNoConvergence as e:
+            logger.warning("ARPACK eigsh did not converge: %s", e)
+            energies = e.eigenvalues
+            ci_vectors = e.eigenvectors
+            converged = False
         order = np.argsort(energies)
-        return energies[order], ci_vectors[:, order]
+        return energies[order], ci_vectors[:, order], converged
 
     def kernel(
         self,
@@ -627,17 +635,23 @@ class ORMASFCISolver(lib.StreamObject):
                 )
                 self._h_ci_cached = h_ci
                 energies, ci_vectors = solve_ci(h_ci, n_roots=self.nroots)
+                self.converged = True  # dense eigh is exact
             else:
-                energies, ci_vectors = self._solve_iterative(
+                energies, ci_vectors, self.converged = self._solve_iterative(
                     h1e, eri, ncas, nelecas, n_det,
                 )
+                if not self.converged:
+                    logger.warning(
+                        "ORMAS-CI iterative solver did not converge "
+                        "(tol=%.1e, max_cycle=%d)",
+                        self.conv_tol, self.max_cycle,
+                    )
         else:
             # Explicit Hamiltonian path for small determinant spaces
             h_ci = build_ci_hamiltonian(alpha_strings, beta_strings, h1e, eri)
             self._h_ci_cached = h_ci
             energies, ci_vectors = solve_ci(h_ci, n_roots=self.nroots)
-
-        self.converged = True
+            self.converged = True  # dense eigh is exact
 
         # Number of roots actually found (may be less than nroots if
         # nroots >= n_det and full diagonalization was used).

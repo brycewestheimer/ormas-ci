@@ -74,10 +74,13 @@ particularly when subspaces have very different character.
 
 For the same active space, the ground state energies satisfy:
 
-    E(CASCI) <= E(RASCI) <= E(HF)
-    E(CASCI) <= E(ORMAS) <= E(HF)
+    E(CASCI) <= E(RASCI)
+    E(CASCI) <= E(ORMAS)
 
 Any restriction on the determinant space raises the energy relative
-to the unrestricted CASCI (variational principle). The quality of the
-approximation depends on whether the excluded determinants were
-important for the target property.
+to the unrestricted CASCI (variational principle). Additionally,
+E(restricted) <= E(HF) holds when the HF reference determinant is
+included in the restricted determinant space, which is the typical
+case but not guaranteed for all ORMAS/RASCI configurations. The
+quality of the approximation depends on whether the excluded
+determinants were important for the target property.

@@ -84,8 +84,8 @@ logic is self-contained.
 This means:
 - **No PySCF source modifications needed.**
 - **No monkey-patching or subclassing of PySCF classes needed.**
-- **PySCF version compatibility is broad** (any version that supports
-  the fcisolver.kernel interface, which has been stable since PySCF 1.x).
+- **PySCF version compatibility:** The package is tested with PySCF >= 2.4
+  and may work with earlier versions, but this is not tested.
 
 ## Format Handling
 

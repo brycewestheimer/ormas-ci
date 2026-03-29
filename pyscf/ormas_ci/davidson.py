@@ -45,8 +45,9 @@ def davidson(
         verbose: Print convergence info if > 0.
 
     Returns:
-        (eigenvalues, eigenvectors) where eigenvalues has shape (nroots,)
-        and eigenvectors has shape (n, nroots).
+        (eigenvalues, eigenvectors, converged) where eigenvalues has shape
+        (nroots,), eigenvectors has shape (n, nroots), and converged is a
+        list of booleans indicating per-root convergence.
     """
     # Normalize initial guesses to a list of 1D vectors
     if isinstance(x0, np.ndarray):
@@ -200,4 +201,4 @@ def davidson(
             [eigenvectors, np.zeros((n, nroots - nroots_eff))], axis=1
         )
 
-    return eigenvalues, eigenvectors
+    return eigenvalues, eigenvectors, converged

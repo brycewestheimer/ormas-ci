@@ -122,7 +122,7 @@ jobs:
         run: |
           python -m venv /tmp/test-install
           /tmp/test-install/bin/pip install dist/*.whl
-          /tmp/test-install/bin/python -c "from pyscf.ormas_ci import ORMASFCISolver; print('Import OK')"
+          cd /tmp && /tmp/test-install/bin/python -c "from pyscf.ormas_ci import ORMASFCISolver; print(ORMASFCISolver.__module__); print('Import OK')"
 
   qdk-smoke:
     runs-on: ubuntu-latest

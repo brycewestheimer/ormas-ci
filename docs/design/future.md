@@ -5,7 +5,7 @@ For completed work see the [CHANGELOG](https://github.com/brycewestheimer/ormas-
 
 ## Current State
 
-ORMAS-CI v0.2.0 is a fully functional PySCF fcisolver plugin with:
+ORMAS-CI v0.3.0 is a fully functional PySCF fcisolver plugin with:
 
 - Three-path CI solver (explicit Hamiltonian, Davidson+einsum, PySCF SCI fallback)
 - Approaching parity with PySCF native FCI for typical ORMAS space sizes

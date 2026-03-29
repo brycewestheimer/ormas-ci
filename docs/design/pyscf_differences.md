@@ -18,7 +18,7 @@ level of agreement depends on the system size:
 | n_det > 200 | ~1e-10 Ha | Iterative Davidson or ARPACK eigsh (depending on space size) |
 
 For the iterative path, the convergence tolerance is controlled by
-`ORMASFCISolver.conv_tol` (default 1e-10).
+`ORMASFCISolver.conv_tol` (default 1e-12).
 
 ### CI Vector
 
