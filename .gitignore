@@ -1,0 +1,21 @@
+# Build artifacts
+build/
+dist/
+*.egg-info/
+docs/_build/
+
+# Python
+__pycache__/
+*.pyc
+
+# Testing / coverage
+.pytest_cache/
+.coverage
+coverage.xml
+htmlcov/
+
+# Tools
+.ruff_cache/
+
+# MkDocs (legacy)
+site/

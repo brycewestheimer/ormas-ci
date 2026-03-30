@@ -1,53 +1,66 @@
 # ORMAS-CI Documentation
 
-## Theory
+Occupation-Restricted Multiple Active Space CI solver for PySCF.
 
-Background on the quantum chemistry methods implemented in this package.
+```{toctree}
+:caption: Theory
+:maxdepth: 1
 
-- [Complete Active Space CI (CASCI)](theory/casci.md)
-- [Restricted Active Space CI (RASCI)](theory/rasci.md)
-- [Occupation-Restricted Multiple Active Spaces CI (ORMAS-CI)](theory/ormas.md)
-- [Generalized Active Space CI (GAS-CI)](theory/gas.md)
-- [Comparison of Methods](theory/comparison.md)
-- [Slater-Condon Rules](theory/slater_condon.md)
-- [Quantum Computing Relevance](theory/quantum_computing.md)
+theory/casci
+theory/rasci
+theory/ormas
+theory/gas
+theory/comparison
+theory/slater_condon
+theory/quantum_computing
+```
 
-## Architecture
+```{toctree}
+:caption: Architecture
+:maxdepth: 1
 
-How the code is structured and why.
+architecture/overview
+architecture/data_flow
+architecture/bitstrings
+architecture/integrals
+architecture/determinant_enumeration
+architecture/phase_factors
+```
 
-- [Module Overview](architecture/overview.md)
-- [Data Flow](architecture/data_flow.md)
-- [Bit String Representation](architecture/bitstrings.md)
-- [Integral Conventions](architecture/integrals.md)
-- [Determinant Enumeration Algorithm](architecture/determinant_enumeration.md)
-- [Phase Factor Computation](architecture/phase_factors.md)
+```{toctree}
+:caption: Design
+:maxdepth: 1
 
-## Design
+design/pyscf_integration
+design/pyscf_differences
+design/qdk_integration
+design/subspace_model
+design/performance
+design/future
+```
 
-Design decisions, tradeoffs, and rationale.
+```{toctree}
+:caption: Integration
+:maxdepth: 1
 
-- [PySCF Integration Strategy](design/pyscf_integration.md)
-- [QDK/Chemistry Integration Path](design/qdk_integration.md)
-- [Subspace Configuration Model](design/subspace_model.md)
-- [Performance Considerations](design/performance.md)
-- [Development Roadmap](design/future.md)
+integration/pyscf_casci
+integration/qdk_chemistry
+integration/forte_comparison
+```
 
-## Integration
+```{toctree}
+:caption: API Reference
+:maxdepth: 1
 
-How to use this package with external tools.
+api/public_api
+api/internals
+```
 
-- [PySCF CASCI Usage](integration/pyscf_casci.md)
-- [QDK/Chemistry Pipeline](integration/qdk_chemistry.md)
-- [Forte/Psi4 Comparison](integration/forte_comparison.md)
+```{toctree}
+:caption: Guides
+:maxdepth: 1
 
-## API Reference
-
-- [Public API](api/public_api.md)
-- [Internal Modules](api/internals.md)
-
-## Guides
-
-- [Getting Started](guides/getting_started.md)
-- [Choosing Subspaces](guides/choosing_subspaces.md)
-- [Common Recipes](guides/recipes.md)
+guides/getting_started
+guides/choosing_subspaces
+guides/recipes
+```

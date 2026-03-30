@@ -16,18 +16,9 @@ from pyscf.ormas_ci import (
 
 ## Solver
 
-::: pyscf.ormas_ci.ORMASFCISolver
-    options:
-      members:
-        - __init__
-        - kernel
-        - make_rdm1
-        - make_rdm1s
-        - make_rdm12
-        - make_rdm12s
-        - spin_square
-        - transform_ci_for_orbital_rotation
-        - large_ci
+```{autoclass} pyscf.ormas_ci.ORMASFCISolver
+:members: __init__, kernel, make_rdm1, make_rdm1s, make_rdm12, make_rdm12s, spin_square, transform_ci_for_orbital_rotation, large_ci
+```
 
 ### PySCF Compatibility Methods
 
@@ -36,34 +27,36 @@ enabling compatibility with PySCF addons such as `fix_spin_` and
 iterative CASSCF workflows.  They are part of the public API but are
 primarily called by PySCF internals rather than by user code directly.
 
-::: pyscf.ormas_ci.ORMASFCISolver
-    options:
-      members:
-        - absorb_h1e
-        - contract_1e
-        - contract_2e
-        - contract_ss
-        - make_hdiag
-        - pspace
-        - get_init_guess
-        - dump_flags
+```{autoclass} pyscf.ormas_ci.ORMASFCISolver
+:members: absorb_h1e, contract_1e, contract_2e, contract_ss, make_hdiag, pspace, get_init_guess, dump_flags
+:noindex:
+```
 
 ---
 
 ## Configuration
 
-::: pyscf.ormas_ci.subspaces.Subspace
+```{autoclass} pyscf.ormas_ci.subspaces.Subspace
+:members:
+```
 
-::: pyscf.ormas_ci.subspaces.ORMASConfig
+```{autoclass} pyscf.ormas_ci.subspaces.ORMASConfig
+:members:
+```
 
-::: pyscf.ormas_ci.subspaces.RASConfig
+```{autoclass} pyscf.ormas_ci.subspaces.RASConfig
+:members:
+```
 
 ---
 
 ## Determinant Utilities
 
-::: pyscf.ormas_ci.determinants.build_determinant_list
+```{autofunction} pyscf.ormas_ci.determinants.build_determinant_list
+```
 
-::: pyscf.ormas_ci.determinants.count_determinants
+```{autofunction} pyscf.ormas_ci.determinants.count_determinants
+```
 
-::: pyscf.ormas_ci.determinants.casci_determinant_count
+```{autofunction} pyscf.ormas_ci.determinants.casci_determinant_count
+```
