@@ -59,9 +59,9 @@ motivated model systems. All quantum metrics (Pauli terms, gate counts,
 IQPE energies, VQE energies) are computed from real QDK operations.
 
 Note: Open-shell systems (FeO) use QDK's `ModelOrbitals` bridge for
-the active-space Hamiltonian because QDK's active-space selectors do
-not yet support unrestricted orbitals. The integrals are from the
-target system; only the orbital metadata object is a model container.
+the active-space Hamiltonian, which packages PySCF active-space integrals
+into a QDK Hamiltonian container. The integrals are from the target
+system; only the orbital metadata object is a model container.
 
 Requires QDK/Chemistry: `pip install pyscf-ormas-ci[qdk]`
 

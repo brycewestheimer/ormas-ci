@@ -3,16 +3,17 @@
 ## Current QDK/Chemistry Architecture
 
 QDK/Chemistry (github.com/microsoft/qdk-chemistry) uses a plugin
-architecture for external quantum chemistry backends. Its current
-capabilities include:
+architecture for external quantum chemistry backends. Its capabilities
+include:
 
 - **Native implementations:** CASCI, ASCI (via MACIS), active space
   selection (AVAS, occupation-based, valence-based, MP2 natural orbitals)
 - **PySCF plugin:** Exposes PySCF's SCF, CASCI, and CASSCF through
   QDK/Chemistry's uniform interface
 - **Core:** C++/pybind11 with Python bindings
-- **No Psi4 plugin** (despite Psi4 being cited as an architectural precedent)
-- **No RAS/ORMAS/GAS support** in any backend
+
+ORMAS-CI extends this ecosystem with RAS/ORMAS/GAS-style constrained CI,
+plugging in through the PySCF backend.
 
 ## Integration Without Modifying QDK/Chemistry
 
@@ -117,7 +118,7 @@ oracle.
 - Resource estimation for quantum circuits
 - Quantum circuit compilation and simulation (via QDK)
 
-## What We Provide That QDK/Chemistry Lacks
+## What ORMAS-CI Adds
 
 - Restricted determinant enumeration (ORMAS/RAS constraints)
 - Structured CI expansion that maps to quantum circuit ansatze

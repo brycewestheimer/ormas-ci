@@ -128,34 +128,31 @@ running ORMAS-CI:
 Comparing resource estimates between full CASCI and ORMAS-restricted
 calculations quantifies the hardware savings.
 
-## Known Limitations
+## Integration Notes
 
-- QDK/Chemistry's API is new and may change. The integration notebook
-  should be treated as a snapshot, not a stable interface.
-- The PySCF plugin in QDK/Chemistry may not expose all of PySCF's CASCI
-  internals directly. Accessing the underlying PySCF objects may require
-  reaching into implementation details.
-- Resource estimation assumes a specific ansatz mapping. The connection
-  between ORMAS determinant space and VQE ansatz structure is conceptually
-  clear but not yet automated in QDK/Chemistry.
+- QDK/Chemistry's API is actively evolving. The integration notebook
+  reflects the v1.0.2 interface; check the QDK/Chemistry README for
+  current details.
+- The PySCF plugin delegates to PySCF's CASCI. Accessing solver-level
+  internals (e.g., swapping fcisolver) uses standard PySCF patterns
+  rather than QDK/Chemistry's public API.
+- The connection between ORMAS determinant space and VQE ansatz structure
+  is conceptually clear. Automating this mapping is a future direction
+  for both projects.
 
 ## Open-Shell Support
 
-QDK/Chemistry v1.0.2 supports open-shell SCF (ROHF/UHF) through
-its PySCF plugin. However, the active space selectors (`qdk_valence`,
-`PyscfAVAS`) currently only work with restricted orbitals.
-
-For open-shell systems (e.g., FeO quintet), the benchmark uses a
-`ModelOrbitals` bridge: active-space integrals are extracted from
-PySCF's CASCI, then packaged into a QDK
+QDK/Chemistry v1.0.2 supports open-shell SCF (ROHF/UHF) through its
+PySCF plugin. For active space selection with open-shell references,
+the benchmark uses a `ModelOrbitals` bridge: active-space integrals are
+extracted from PySCF's CASCI, then packaged into a QDK
 `CanonicalFourCenterHamiltonianContainer` with `ModelOrbitals(ncas, True)`.
 This produces a valid qubit Hamiltonian from the target system's
-integrals without requiring QDK's active space selector.
+integrals.
 
 | QDK Layer | Closed-Shell | Open-Shell |
 |-----------|-------------|------------|
 | PySCF SCF (RHF/ROHF/UHF) | Supported | Supported |
-| Active space selectors | Supported | Not yet supported |
+| Active space selectors | `qdk_valence` / `PyscfAVAS` | Via `ModelOrbitals` bridge |
 | HamiltonianConstructor | Supported | Supported (full MOs) |
 | Qubit mapping (JW) | Supported | Supported |
-| Active-space bridge | `qdk_valence` | `ModelOrbitals` + PySCF integrals |
