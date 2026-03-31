@@ -31,8 +31,13 @@ setup and integral transformation; our solver handles the restricted CI internal
 """
 
 from pyscf.ormas_ci.determinants import build_determinant_list, count_determinants
-from pyscf.ormas_ci.fcisolver import ORMASFCISolver
-from pyscf.ormas_ci.subspaces import ORMASConfig, RASConfig, Subspace
+from pyscf.ormas_ci.fcisolver import ORMASFCISolver, SFORMASFCISolver
+from pyscf.ormas_ci.spinflip import (
+    count_sf_determinants,
+    generate_sf_determinants,
+    validate_reference_consistency,
+)
+from pyscf.ormas_ci.subspaces import ORMASConfig, RASConfig, SFORMASConfig, SFRASConfig, Subspace
 
 __version__ = "0.3.0"
 
@@ -40,7 +45,13 @@ __all__ = [
     "Subspace",
     "ORMASConfig",
     "RASConfig",
+    "SFORMASConfig",
+    "SFRASConfig",
     "ORMASFCISolver",
+    "SFORMASFCISolver",
     "build_determinant_list",
     "count_determinants",
+    "generate_sf_determinants",
+    "count_sf_determinants",
+    "validate_reference_consistency",
 ]

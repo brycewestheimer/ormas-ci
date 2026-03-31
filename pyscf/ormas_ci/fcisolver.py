@@ -48,10 +48,10 @@ from pyscf.ormas_ci.rdm import make_rdm12 as _make_rdm12
 from pyscf.ormas_ci.rdm import make_rdm12s as _make_rdm12s
 from pyscf.ormas_ci.sigma import SigmaEinsum
 from pyscf.ormas_ci.solver import solve_ci
-from pyscf.ormas_ci.subspaces import ORMASConfig
+from pyscf.ormas_ci.subspaces import ORMASConfig, SFORMASConfig
 from pyscf.ormas_ci.utils import bits_to_indices, popcount
 
-__all__ = ["ORMASFCISolver"]
+__all__ = ["ORMASFCISolver", "SFORMASFCISolver"]
 
 logger = logging.getLogger(__name__)
 
@@ -1279,3 +1279,99 @@ class ORMASFCISolver(lib.StreamObject):
                 sub.min_electrons,
                 sub.max_electrons,
             )
+
+
+class SFORMASFCISolver(ORMASFCISolver):
+    """PySCF fcisolver interface for spin-flip ORMAS-CI.
+
+    Extends ORMASFCISolver with spin-flip specific validation,
+    reference analysis, and logging. The core solve machinery
+    is inherited unchanged.
+    """
+
+    def __init__(self, sf_config: SFORMASConfig, **kwargs: object) -> None:
+        """Initialize the SF-ORMAS solver.
+
+        Args:
+            sf_config: Spin-flip ORMAS configuration.
+            **kwargs: Additional arguments passed to ORMASFCISolver.
+        """
+        self.sf_config = sf_config
+
+        # Translate to standard ORMASConfig for the target sector
+        ormas_config = sf_config.to_ormas_config()
+
+        # Initialize parent with the translated config
+        super().__init__(ormas_config, **kwargs)
+
+        # Store SF metadata for logging and diagnostics
+        self._sf_metadata = {
+            "ref_spin": sf_config.ref_spin,
+            "target_spin": sf_config.target_spin,
+            "n_spin_flips": sf_config.n_spin_flips,
+            "nelecas_ref": sf_config.nelecas_reference,
+            "nelecas_target": sf_config.nelecas_target,
+        }
+
+    def kernel(
+        self,
+        h1e: np.ndarray,
+        eri: np.ndarray,
+        ncas: int,
+        nelecas: int | tuple[int, int],
+        ci0: np.ndarray | None = None,
+        ecore: float = 0,
+        **kwargs: object,
+    ) -> tuple[float | np.ndarray, np.ndarray | list[np.ndarray]]:
+        """Run the SF-ORMAS CI calculation.
+
+        Adds SF-specific validation and logging, then delegates to the
+        standard ORMAS-CI kernel.
+
+        Args:
+            h1e: One-electron integrals in the active space.
+            eri: Two-electron integrals.
+            ncas: Number of active orbitals.
+            nelecas: (n_alpha, n_beta) or total electron count.
+            ci0: Initial CI vector guess (optional).
+            ecore: Core energy added to CI eigenvalue.
+            **kwargs: Additional keyword arguments.
+
+        Returns:
+            (e_tot, ci_vector) for nroots=1, or
+            (e_tot_array, ci_vector_array) for nroots>1.
+
+        Raises:
+            ValueError: If nelecas does not match the SF target sector.
+        """
+        log = logging.getLogger(__name__)
+
+        # Log SF-specific information
+        log.info("=" * 60)
+        log.info("SF-ORMAS-CI Calculation")
+        log.info("=" * 60)
+        log.info(f"Reference spin (2S):  {self._sf_metadata['ref_spin']}")
+        log.info(f"Target spin (2S):     {self._sf_metadata['target_spin']}")
+        log.info(f"Spin flips:           {self._sf_metadata['n_spin_flips']}")
+        log.info(f"Reference nelecas:    {self._sf_metadata['nelecas_ref']}")
+        log.info(f"Target nelecas:       {self._sf_metadata['nelecas_target']}")
+        log.info("=" * 60)
+
+        # Validate consistency between PySCF's nelecas and our config
+        if isinstance(nelecas, (int, np.integer)):
+            nelec_check = (nelecas // 2, nelecas - nelecas // 2)
+        else:
+            nelec_check = tuple(nelecas)
+
+        expected = self.sf_config.nelecas_target
+        if nelec_check != expected:
+            raise ValueError(
+                f"PySCF nelecas {nelec_check} does not match SF-ORMAS "
+                f"target nelecas {expected}. The CASCI must be constructed "
+                f"with the target (post-spin-flip) electron counts."
+            )
+
+        # Delegate to standard ORMAS-CI kernel
+        return super().kernel(
+            h1e, eri, ncas, nelecas, ci0=ci0, ecore=ecore, **kwargs
+        )
