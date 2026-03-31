@@ -13,7 +13,7 @@ No modifications to PySCF or QDK/Chemistry are required.
 
 from dataclasses import dataclass
 
-__all__ = ["Subspace", "ORMASConfig", "RASConfig"]
+__all__ = ["Subspace", "ORMASConfig", "RASConfig", "SFORMASConfig", "SFRASConfig"]
 
 
 @dataclass
@@ -229,3 +229,216 @@ class RASConfig:
         )
         config.validate()
         return config
+
+
+@dataclass
+class SFORMASConfig:
+    """Configuration for a spin-flip ORMAS-CI calculation.
+
+    Specifies the reference state, target multiplicity, number of spin flips,
+    and the ORMAS subspace structure for the SF-CI expansion.
+    """
+
+    # Reference state specification
+    ref_spin: int
+    target_spin: int
+    n_spin_flips: int
+
+    # Active space
+    n_active_orbitals: int
+    n_active_electrons: int
+
+    # ORMAS subspaces
+    subspaces: list[Subspace]
+
+    # Optional: excitation level control
+    max_hole_excitations: int | None = None
+    max_particle_excitations: int | None = None
+
+    def __post_init__(self) -> None:
+        """Validate and compute derived quantities."""
+        expected_n_sf = (self.ref_spin - self.target_spin) // 2
+        if self.ref_spin < 0:
+            raise ValueError(
+                f"ref_spin ({self.ref_spin}) must be non-negative."
+            )
+        if self.target_spin < 0:
+            raise ValueError(
+                f"target_spin ({self.target_spin}) must be non-negative."
+            )
+        if self.ref_spin < self.target_spin:
+            raise ValueError(
+                f"ref_spin ({self.ref_spin}) must be >= target_spin "
+                f"({self.target_spin}). "
+                f"SF-ORMAS flips alpha->beta, reducing M_s."
+            )
+        if self.n_spin_flips != expected_n_sf:
+            raise ValueError(
+                f"n_spin_flips ({self.n_spin_flips}) inconsistent with "
+                f"ref_spin ({self.ref_spin}) and target_spin "
+                f"({self.target_spin}). Expected {expected_n_sf}."
+            )
+
+        if self.ref_spin > self.n_active_electrons:
+            raise ValueError(
+                f"ref_spin ({self.ref_spin}) cannot exceed "
+                f"n_active_electrons ({self.n_active_electrons})."
+            )
+
+        if (self.ref_spin % 2) != (self.n_active_electrons % 2):
+            raise ValueError(
+                f"ref_spin ({self.ref_spin}) and n_active_electrons "
+                f"({self.n_active_electrons}) must have the same parity."
+            )
+
+    @property
+    def nelecas_reference(self) -> tuple[int, int]:
+        """(N_alpha, N_beta) for the ROHF reference."""
+        n_alpha = (self.n_active_electrons + self.ref_spin) // 2
+        n_beta = (self.n_active_electrons - self.ref_spin) // 2
+        return (n_alpha, n_beta)
+
+    @property
+    def nelecas_target(self) -> tuple[int, int]:
+        """(N_alpha, N_beta) for the target CI space (after spin flips)."""
+        ref_a, ref_b = self.nelecas_reference
+        return (ref_a - self.n_spin_flips, ref_b + self.n_spin_flips)
+
+    def to_ormas_config(self) -> ORMASConfig:
+        """Convert to a standard ORMASConfig for the target M_s sector.
+
+        This is the key translation step. The returned ORMASConfig has
+        nelecas = nelecas_target, and the subspace bounds are preserved
+        as-is. The determinant enumeration then proceeds exactly as in
+        standard ORMAS-CI, but in the target M_s sector.
+        """
+        return ORMASConfig(
+            subspaces=self.subspaces,
+            n_active_orbitals=self.n_active_orbitals,
+            nelecas=self.nelecas_target,
+        )
+
+    @staticmethod
+    def single_sf_diradical(
+        n_active_orbitals: int,
+        n_active_electrons: int,
+        sf_cas_orbitals: list[int],
+        hole_orbitals: list[int] | None = None,
+        particle_orbitals: list[int] | None = None,
+        max_holes: int = 0,
+        max_particles: int = 0,
+    ) -> "SFORMASConfig":
+        """Convenience constructor for the common single-SF diradical case.
+
+        Builds a 1-3 subspace SF-ORMAS config targeting a singlet from a
+        triplet reference (single spin flip). The SF-CAS has no occupation
+        restrictions. Hole and particle spaces are optional.
+
+        Args:
+            n_active_orbitals: Total active space orbitals.
+            n_active_electrons: Total active electrons.
+            sf_cas_orbitals: Orbital indices for the SF-CAS (full CI
+                within this space).
+            hole_orbitals: Orbital indices for the hole space (doubly
+                occupied in reference).
+            particle_orbitals: Orbital indices for the particle space
+                (virtual in reference).
+            max_holes: Maximum excitations out of hole space.
+            max_particles: Maximum excitations into particle space.
+        """
+        subspaces = []
+
+        if hole_orbitals:
+            n_hole_elec = 2 * len(hole_orbitals)
+            subspaces.append(Subspace(
+                name="hole",
+                orbital_indices=hole_orbitals,
+                min_electrons=n_hole_elec - max_holes,
+                max_electrons=n_hole_elec,
+            ))
+
+        subspaces.append(Subspace(
+            name="sf_cas",
+            orbital_indices=sf_cas_orbitals,
+            min_electrons=0,
+            max_electrons=2 * len(sf_cas_orbitals),
+        ))
+
+        if particle_orbitals:
+            subspaces.append(Subspace(
+                name="particle",
+                orbital_indices=particle_orbitals,
+                min_electrons=0,
+                max_electrons=max_particles,
+            ))
+
+        return SFORMASConfig(
+            ref_spin=2,
+            target_spin=0,
+            n_spin_flips=1,
+            n_active_orbitals=n_active_orbitals,
+            n_active_electrons=n_active_electrons,
+            subspaces=subspaces,
+            max_hole_excitations=max_holes,
+            max_particle_excitations=max_particles,
+        )
+
+
+@dataclass
+class SFRASConfig:
+    """Convenience constructor for 3-subspace RAS-style SF-ORMAS.
+
+    Mirrors the existing RASConfig but adds spin-flip parameters.
+    """
+
+    ras1_orbitals: list[int]
+    ras2_orbitals: list[int]
+    ras3_orbitals: list[int]
+    max_holes_ras1: int
+    max_particles_ras3: int
+    n_active_electrons: int
+    ref_spin: int
+    target_spin: int
+
+    def to_sf_ormas_config(self) -> SFORMASConfig:
+        """Convert to SFORMASConfig."""
+        n_sf = (self.ref_spin - self.target_spin) // 2
+        n_active_orbitals = (
+            len(self.ras1_orbitals)
+            + len(self.ras2_orbitals)
+            + len(self.ras3_orbitals)
+        )
+
+        subspaces = []
+        if self.ras1_orbitals:
+            n_ras1_elec = 2 * len(self.ras1_orbitals)
+            subspaces.append(Subspace(
+                name="RAS1",
+                orbital_indices=self.ras1_orbitals,
+                min_electrons=n_ras1_elec - self.max_holes_ras1,
+                max_electrons=n_ras1_elec,
+            ))
+
+        subspaces.append(Subspace(
+            name="RAS2_SF",
+            orbital_indices=self.ras2_orbitals,
+            min_electrons=0,
+            max_electrons=2 * len(self.ras2_orbitals),
+        ))
+
+        if self.ras3_orbitals:
+            subspaces.append(Subspace(
+                name="RAS3",
+                orbital_indices=self.ras3_orbitals,
+                min_electrons=0,
+                max_electrons=self.max_particles_ras3,
+            ))
+
+        return SFORMASConfig(
+            ref_spin=self.ref_spin,
+            target_spin=self.target_spin,
+            n_spin_flips=n_sf,
+            n_active_orbitals=n_active_orbitals,
+            n_active_electrons=self.n_active_electrons,
+            subspaces=subspaces,
+        )
