@@ -68,3 +68,28 @@ guides/choosing_subspaces
 guides/recipes
 guides/sf_recipes
 ```
+
+```{toctree}
+:caption: User Guide
+:maxdepth: 1
+
+user_guide/installation
+user_guide/configuration_reference
+user_guide/interpreting_results
+user_guide/performance_tuning
+user_guide/faq
+user_guide/migration
+```
+
+```{toctree}
+:caption: Developer Guide
+:maxdepth: 1
+
+developer_guide/contributing
+developer_guide/code_style
+developer_guide/testing
+developer_guide/architecture_overview
+developer_guide/debugging
+developer_guide/extending
+developer_guide/release_process
+```
