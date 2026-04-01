@@ -40,10 +40,11 @@ Our scope is deliberately narrow to demonstrate the method and
 integration, not to be a comprehensive multireference code.
 
 **Performance:** Forte uses optimized C++ with efficient sigma-vector
-algorithms (direct CI). Our implementation uses Python with explicit
-matrix construction. Forte is orders of magnitude faster for large
-determinant spaces. Our implementation is adequate for proof-of-concept
-calculations.
+algorithms (direct CI). Our implementation uses Python with a three-path
+solver (dense diagonalization for small spaces, Davidson+einsum for
+medium, PySCF's C-level selected CI sigma for large). Forte is faster
+for large determinant spaces, but for typical ORMAS-restricted spaces
+our solver is competitive.
 
 **Architecture:** Forte is tightly integrated with Psi4's C++ infrastructure.
 Our package is a standalone Python package with no C++ dependencies

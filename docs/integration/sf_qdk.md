@@ -139,12 +139,11 @@ print(f"Pauli terms: {len(qubit_ham.pauli_strings)}")
 ```
 
 ```{note}
-The `ModelOrbitals` bridge is necessary because QDK's active-space
-selectors do not support open-shell (ROHF/UHF) systems directly.
-By packaging PySCF's active-space integrals into a
-`CanonicalFourCenterHamiltonianContainer` with `ModelOrbitals`,
-we bypass the active-space selection layer and feed integrals
-directly into the qubit mapping stage.
+The `ModelOrbitals` bridge packages PySCF's active-space integrals
+directly into a `CanonicalFourCenterHamiltonianContainer`, bypassing
+the active-space selection layer and feeding integrals straight into
+the qubit mapping stage. This is the standard approach for open-shell
+(ROHF/UHF) systems in the QDK/Chemistry + PySCF workflow.
 See {doc}`qdk_chemistry` for more details on the bridge.
 ```
 

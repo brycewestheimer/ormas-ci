@@ -9,11 +9,9 @@ Occupation-Restricted Multiple Active Space Configuration Interaction solver as 
 [![Code style: ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 [![codecov](https://codecov.io/gh/brycewestheimer/ormas-ci/graph/badge.svg)](https://codecov.io/gh/brycewestheimer/ormas-ci)
 
-## Overview
+ORMAS-CI partitions the active orbital space into subspaces with per-subspace electron occupation bounds, then solves the CI eigenvalue problem over only the allowed determinants. It plugs into PySCF as a custom `fcisolver` for CASCI and CASSCF, so existing PySCF workflows need just one extra line to switch from full CI to a restricted expansion.
 
-ORMAS-CI partitions the active orbital space into subspaces with per-subspace electron occupation bounds, then builds and diagonalizes the CI Hamiltonian over only the allowed determinants. It plugs into PySCF as a custom `fcisolver` for CASCI and CASSCF, so existing PySCF workflows need only one extra line to switch from full CI to a restricted expansion.
-
-The package supports both the classic three-space RASCI partitioning and the general ORMAS-CI scheme with an arbitrary number of subspaces. A tested bridge to Microsoft's QDK/Chemistry library lets QDK-driven SCF feed into ORMAS-CI through PySCF's CASCI interface for quantum resource estimation.
+The package supports the classic three-space RASCI partitioning and the general ORMAS-CI scheme with arbitrary subspace count. Both closed-shell (RHF) and open-shell (ROHF) references are supported. Open-shell systems use the spin-flip variant (SF-ORMAS), which starts from a high-spin ROHF reference and flips spins to access the target multiplicity. The package also integrates with Microsoft's QDK/Chemistry library, letting QDK-driven workflows feed into ORMAS-CI through PySCF for quantum resource estimation.
 
 ## Installation
 
@@ -85,6 +83,36 @@ print(f"Reduction to {n_ormas / n_casci:.1%} of full CASCI space")
 ```
 
 The ORMAS-CI energy will be at or slightly above the CASCI energy. If the gap is larger than a few mHartree, relax the occupation constraints.
+
+## Spin-Flip ORMAS
+
+For open-shell systems like diradicals, excited states, and bond-breaking problems, SF-ORMAS starts from a high-spin ROHF reference and flips spins to reach the target state:
+
+```python
+from pyscf import gto, scf, mcscf
+from pyscf.ormas_ci import SFORMASFCISolver, SFORMASConfig, Subspace
+
+# Stretched H2 with triplet reference
+mol = gto.M(atom='H 0 0 0; H 0 0 2.0', basis='sto-3g', spin=2)
+mf = scf.ROHF(mol).run()
+
+sf_config = SFORMASConfig(
+    ref_spin=2,        # triplet reference (2S=2)
+    target_spin=0,     # singlet target (2S=0)
+    n_spin_flips=1,
+    n_active_orbitals=2,
+    n_active_electrons=2,
+    subspaces=[Subspace("sigma", [0, 1], 0, 4)],
+)
+
+n_a, n_b = sf_config.nelecas_target  # (1, 1)
+mc = mcscf.CASCI(mf, 2, (n_a, n_b))
+mc.fcisolver = SFORMASFCISolver(sf_config)
+e = mc.kernel()[0]
+print(f"SF-ORMAS energy: {e:.10f} Ha")
+```
+
+See [`docs/guides/sf_recipes.md`](docs/guides/sf_recipes.md) for more examples including multi-root excited states and CASSCF orbital optimization.
 
 ## How It Works
 

@@ -84,11 +84,45 @@ print(f"CASCI: {n_casci} determinants")
 print(f"Reduction: {n_ormas/n_casci:.1%}")
 ```
 
+## Open-Shell Systems (SF-ORMAS)
+
+For open-shell problems (diradicals, excited states, bond breaking),
+SF-ORMAS starts from a high-spin ROHF reference and flips spins to
+reach the target multiplicity:
+
+```python
+from pyscf import gto, scf, mcscf
+from pyscf.ormas_ci import SFORMASFCISolver, SFORMASConfig, Subspace
+
+mol = gto.M(atom='H 0 0 0; H 0 0 2.0', basis='sto-3g', spin=2, verbose=0)
+mf = scf.ROHF(mol)
+mf.verbose = 0
+mf.run()
+
+sf_config = SFORMASConfig(
+    ref_spin=2, target_spin=0, n_spin_flips=1,
+    n_active_orbitals=2, n_active_electrons=2,
+    subspaces=[Subspace("sigma", [0, 1], 0, 4)],
+)
+
+n_a, n_b = sf_config.nelecas_target
+mc = mcscf.CASCI(mf, 2, (n_a, n_b))
+mc.fcisolver = SFORMASFCISolver(sf_config)
+e = mc.kernel()[0]
+print(f"SF-ORMAS energy: {e:.10f} Ha")
+```
+
+See [Spin-Flip Recipes](sf_recipes.md) for worked examples including
+multi-root excited states, CASSCF orbital optimization, and QDK
+integration.
+
 ## Next Steps
 
 - See [Choosing Subspaces](choosing_subspaces.md) for guidance on how
   to partition your active orbitals.
 - See [Common Recipes](recipes.md) for worked examples of RASCI and
   multi-subspace ORMAS configurations.
+- See [Spin-Flip Recipes](sf_recipes.md) for open-shell workflows
+  using SF-ORMAS.
 - See [PySCF CASCI Usage](../integration/pyscf_casci.md) for the full
   integration reference.

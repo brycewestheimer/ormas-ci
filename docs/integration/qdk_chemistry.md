@@ -19,8 +19,8 @@ pip install "pyscf-ormas-ci[qdk]"
 This pulls in `qdk-chemistry` and `pyscf` as extras dependencies.
 Alternatively, install them manually: `pip install qdk-chemistry pyscf-ormas-ci pyscf`.
 
-Note: QDK/Chemistry is new (January 2026) and the installation process
-may evolve. Check the QDK/Chemistry README for current instructions.
+Note: QDK/Chemistry is under active development. Check the
+QDK/Chemistry README for current installation instructions.
 
 ## Integration Architecture
 
@@ -143,12 +143,11 @@ calculations quantifies the hardware savings.
 ## Open-Shell Support
 
 QDK/Chemistry v1.0.2 supports open-shell SCF (ROHF/UHF) through its
-PySCF plugin. For active space selection with open-shell references,
-the benchmark uses a `ModelOrbitals` bridge: active-space integrals are
-extracted from PySCF's CASCI, then packaged into a QDK
-`CanonicalFourCenterHamiltonianContainer` with `ModelOrbitals(ncas, True)`.
-This produces a valid qubit Hamiltonian from the target system's
-integrals.
+PySCF plugin. For open-shell active spaces, the `ModelOrbitals` bridge
+packages active-space integrals from PySCF's CASCI into a QDK
+`CanonicalFourCenterHamiltonianContainer` with `ModelOrbitals(ncas, True)`,
+feeding them directly into the qubit mapping stage. This produces
+a valid qubit Hamiltonian from the target system's integrals.
 
 | QDK Layer | Closed-Shell | Open-Shell |
 |-----------|-------------|------------|
