@@ -13,6 +13,7 @@ theory/gas
 theory/comparison
 theory/slater_condon
 theory/quantum_computing
+theory/spinflip
 ```
 
 ```{toctree}
@@ -37,6 +38,7 @@ design/qdk_integration
 design/subspace_model
 design/performance
 design/future
+design/sf_ormas_design
 ```
 
 ```{toctree}
@@ -63,4 +65,5 @@ api/internals
 guides/getting_started
 guides/choosing_subspaces
 guides/recipes
+guides/sf_recipes
 ```
