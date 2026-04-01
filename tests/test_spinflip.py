@@ -23,6 +23,7 @@ from pyscf.ormas_ci.subspaces import (
 # Fixtures
 # ---------------------------------------------------------------------------
 
+
 @pytest.fixture()
 def triplet_cas22() -> SFORMASConfig:
     """Single SF, triplet->singlet, CAS(2,2)."""
@@ -57,6 +58,7 @@ def quintet_cas44() -> SFORMASConfig:
 # Configuration Tests
 # ---------------------------------------------------------------------------
 
+
 class TestSFORMASConfig:
     """Tests for SFORMASConfig validation and properties."""
 
@@ -71,24 +73,33 @@ class TestSFORMASConfig:
         """Reference (alpha, beta) derived correctly from ref_spin."""
         # Triplet, 2 electrons -> (2, 0)
         cfg_t2 = SFORMASConfig(
-            ref_spin=2, target_spin=0, n_spin_flips=1,
-            n_active_orbitals=2, n_active_electrons=2,
+            ref_spin=2,
+            target_spin=0,
+            n_spin_flips=1,
+            n_active_orbitals=2,
+            n_active_electrons=2,
             subspaces=[Subspace("cas", [0, 1], 0, 4)],
         )
         assert cfg_t2.nelecas_reference == (2, 0)
 
         # Quintet, 4 electrons -> (4, 0)
         cfg_q4 = SFORMASConfig(
-            ref_spin=4, target_spin=0, n_spin_flips=2,
-            n_active_orbitals=4, n_active_electrons=4,
+            ref_spin=4,
+            target_spin=0,
+            n_spin_flips=2,
+            n_active_orbitals=4,
+            n_active_electrons=4,
             subspaces=[Subspace("cas", [0, 1, 2, 3], 0, 8)],
         )
         assert cfg_q4.nelecas_reference == (4, 0)
 
         # Triplet, 4 electrons -> (3, 1)
         cfg_t4 = SFORMASConfig(
-            ref_spin=2, target_spin=0, n_spin_flips=1,
-            n_active_orbitals=4, n_active_electrons=4,
+            ref_spin=2,
+            target_spin=0,
+            n_spin_flips=1,
+            n_active_orbitals=4,
+            n_active_electrons=4,
             subspaces=[Subspace("cas", [0, 1, 2, 3], 0, 8)],
         )
         assert cfg_t4.nelecas_reference == (3, 1)
@@ -97,16 +108,22 @@ class TestSFORMASConfig:
         """Target (alpha, beta) after spin flips."""
         # Single SF: (2,0) -> (1,1)
         cfg_1sf = SFORMASConfig(
-            ref_spin=2, target_spin=0, n_spin_flips=1,
-            n_active_orbitals=2, n_active_electrons=2,
+            ref_spin=2,
+            target_spin=0,
+            n_spin_flips=1,
+            n_active_orbitals=2,
+            n_active_electrons=2,
             subspaces=[Subspace("cas", [0, 1], 0, 4)],
         )
         assert cfg_1sf.nelecas_target == (1, 1)
 
         # Double SF: (4,0) -> (2,2)
         cfg_2sf = SFORMASConfig(
-            ref_spin=4, target_spin=0, n_spin_flips=2,
-            n_active_orbitals=4, n_active_electrons=4,
+            ref_spin=4,
+            target_spin=0,
+            n_spin_flips=2,
+            n_active_orbitals=4,
+            n_active_electrons=4,
             subspaces=[Subspace("cas", [0, 1, 2, 3], 0, 8)],
         )
         assert cfg_2sf.nelecas_target == (2, 2)
@@ -123,8 +140,11 @@ class TestSFORMASConfig:
         """Odd ref_spin + even n_electrons raises ValueError with 'parity'."""
         with pytest.raises(ValueError, match="parity"):
             SFORMASConfig(
-                ref_spin=1, target_spin=1, n_spin_flips=0,
-                n_active_orbitals=2, n_active_electrons=2,
+                ref_spin=1,
+                target_spin=1,
+                n_spin_flips=0,
+                n_active_orbitals=2,
+                n_active_electrons=2,
                 subspaces=[Subspace("cas", [0, 1], 0, 4)],
             )
 
@@ -132,8 +152,11 @@ class TestSFORMASConfig:
         """ref_spin exceeds n_active_electrons raises ValueError."""
         with pytest.raises(ValueError, match="cannot exceed"):
             SFORMASConfig(
-                ref_spin=4, target_spin=0, n_spin_flips=2,
-                n_active_orbitals=2, n_active_electrons=2,
+                ref_spin=4,
+                target_spin=0,
+                n_spin_flips=2,
+                n_active_orbitals=2,
+                n_active_electrons=2,
                 subspaces=[Subspace("cas", [0, 1], 0, 4)],
             )
 
@@ -141,8 +164,11 @@ class TestSFORMASConfig:
         """Negative ref_spin raises ValueError."""
         with pytest.raises(ValueError, match="non-negative"):
             SFORMASConfig(
-                ref_spin=-2, target_spin=0, n_spin_flips=-1,
-                n_active_orbitals=2, n_active_electrons=2,
+                ref_spin=-2,
+                target_spin=0,
+                n_spin_flips=-1,
+                n_active_orbitals=2,
+                n_active_electrons=2,
                 subspaces=[Subspace("cas", [0, 1], 0, 4)],
             )
 
@@ -150,8 +176,11 @@ class TestSFORMASConfig:
         """ref_spin < target_spin raises ValueError."""
         with pytest.raises(ValueError, match=">="):
             SFORMASConfig(
-                ref_spin=0, target_spin=2, n_spin_flips=-1,
-                n_active_orbitals=2, n_active_electrons=2,
+                ref_spin=0,
+                target_spin=2,
+                n_spin_flips=-1,
+                n_active_orbitals=2,
+                n_active_electrons=2,
                 subspaces=[Subspace("cas", [0, 1], 0, 4)],
             )
 
@@ -159,8 +188,11 @@ class TestSFORMASConfig:
         """Odd ref_spin - target_spin raises ValueError about parity."""
         with pytest.raises(ValueError, match="same parity"):
             SFORMASConfig(
-                ref_spin=3, target_spin=0, n_spin_flips=1,
-                n_active_orbitals=3, n_active_electrons=3,
+                ref_spin=3,
+                target_spin=0,
+                n_spin_flips=1,
+                n_active_orbitals=3,
+                n_active_electrons=3,
                 subspaces=[Subspace("cas", [0, 1, 2], 0, 6)],
             )
 
@@ -168,8 +200,11 @@ class TestSFORMASConfig:
         """Even ref_spin with odd target_spin raises ValueError about parity."""
         with pytest.raises(ValueError, match="same parity"):
             SFORMASConfig(
-                ref_spin=4, target_spin=1, n_spin_flips=1,
-                n_active_orbitals=4, n_active_electrons=4,
+                ref_spin=4,
+                target_spin=1,
+                n_spin_flips=1,
+                n_active_orbitals=4,
+                n_active_electrons=4,
                 subspaces=[Subspace("cas", [0, 1, 2, 3], 0, 8)],
             )
 
@@ -251,6 +286,7 @@ class TestSingleSFDiradical:
 # Determinant Enumeration Tests
 # ---------------------------------------------------------------------------
 
+
 class TestSFDeterminants:
     """Tests for SF determinant enumeration."""
 
@@ -263,14 +299,18 @@ class TestSFDeterminants:
     def test_sf_det_count_ethylene(self) -> None:
         """CAS(2,2), single SF: 4 determinants (same physics as H2)."""
         cfg = SFORMASConfig(
-            ref_spin=2, target_spin=0, n_spin_flips=1,
-            n_active_orbitals=2, n_active_electrons=2,
+            ref_spin=2,
+            target_spin=0,
+            n_spin_flips=1,
+            n_active_orbitals=2,
+            n_active_electrons=2,
             subspaces=[Subspace("pi", [0, 1], 0, 4)],
         )
         assert count_sf_determinants(cfg) == 4
 
     def test_sf_det_count_double_sf(
-        self, quintet_cas44: SFORMASConfig,
+        self,
+        quintet_cas44: SFORMASConfig,
     ) -> None:
         """CAS(4,4) double SF quintet->singlet matches full CAS(4,4) M_s=0."""
         n_sf = count_sf_determinants(quintet_cas44)
@@ -278,7 +318,8 @@ class TestSFDeterminants:
         assert n_sf == n_cas
 
     def test_sf_dets_equal_ormas_dets(
-        self, triplet_cas22: SFORMASConfig,
+        self,
+        triplet_cas22: SFORMASConfig,
     ) -> None:
         """SF determinants == standard ORMAS determinants with equivalent nelecas."""
         sf_alpha, sf_beta = generate_sf_determinants(triplet_cas22)
@@ -292,21 +333,19 @@ class TestSFDeterminants:
         ormas_alpha, ormas_beta = build_determinant_list(ormas_config)
 
         # Compare as sets of pairs
-        sf_pairs = {
-            (int(a), int(b)) for a, b in zip(sf_alpha, sf_beta)
-        }
-        ormas_pairs = {
-            (int(a), int(b))
-            for a, b in zip(ormas_alpha, ormas_beta)
-        }
+        sf_pairs = {(int(a), int(b)) for a, b in zip(sf_alpha, sf_beta)}
+        ormas_pairs = {(int(a), int(b)) for a, b in zip(ormas_alpha, ormas_beta)}
         assert sf_pairs == ormas_pairs
 
     def test_sf_det_count_with_restrictions(self) -> None:
         """SF with tight ORMAS bounds produces fewer dets than unrestricted."""
         # Unrestricted CAS(2,2)
         cfg_full = SFORMASConfig(
-            ref_spin=2, target_spin=0, n_spin_flips=1,
-            n_active_orbitals=4, n_active_electrons=4,
+            ref_spin=2,
+            target_spin=0,
+            n_spin_flips=1,
+            n_active_orbitals=4,
+            n_active_electrons=4,
             subspaces=[
                 Subspace("cas", [0, 1, 2, 3], 0, 8),
             ],
@@ -315,8 +354,11 @@ class TestSFDeterminants:
 
         # Restricted: 2-subspace with tight bounds
         cfg_restricted = SFORMASConfig(
-            ref_spin=2, target_spin=0, n_spin_flips=1,
-            n_active_orbitals=4, n_active_electrons=4,
+            ref_spin=2,
+            target_spin=0,
+            n_spin_flips=1,
+            n_active_orbitals=4,
+            n_active_electrons=4,
             subspaces=[
                 Subspace("hole", [0, 1], 2, 4),
                 Subspace("sf_cas", [2, 3], 0, 4),
@@ -330,11 +372,13 @@ class TestSFDeterminants:
 # Reference Analysis Tests
 # ---------------------------------------------------------------------------
 
+
 class TestReferenceAnalysis:
     """Tests for reference determinant construction and validation."""
 
     def test_build_reference_determinant_aufbau(
-        self, triplet_cas22: SFORMASConfig,
+        self,
+        triplet_cas22: SFORMASConfig,
     ) -> None:
         """Triplet CAS(2,2): alpha_str=0b11, beta_str=0b00."""
         alpha, beta = build_reference_determinant(triplet_cas22)
@@ -344,8 +388,11 @@ class TestReferenceAnalysis:
     def test_build_reference_determinant_from_occ(self) -> None:
         """Occupation [2,1,1,0]: alpha_str=0b0111, beta_str=0b0001."""
         cfg = SFORMASConfig(
-            ref_spin=2, target_spin=0, n_spin_flips=1,
-            n_active_orbitals=4, n_active_electrons=4,
+            ref_spin=2,
+            target_spin=0,
+            n_spin_flips=1,
+            n_active_orbitals=4,
+            n_active_electrons=4,
             subspaces=[Subspace("cas", [0, 1, 2, 3], 0, 8)],
         )
         occ = np.array([2.0, 1.0, 1.0, 0.0])
@@ -354,12 +401,15 @@ class TestReferenceAnalysis:
         assert beta == 0b0001
 
     def test_validate_reference_consistency_clean(
-        self, triplet_cas22: SFORMASConfig,
+        self,
+        triplet_cas22: SFORMASConfig,
     ) -> None:
         """Well-configured system returns no warnings."""
         active_occ = np.array([1.0, 1.0])  # Both singly occupied, in sf_cas
         result = validate_reference_consistency(
-            triplet_cas22, active_mo_occ=active_occ, sf_cas_subspace_idx=0,
+            triplet_cas22,
+            active_mo_occ=active_occ,
+            sf_cas_subspace_idx=0,
         )
         assert result["warnings"] == []
         assert result["n_det"] == 4
@@ -369,8 +419,11 @@ class TestReferenceAnalysis:
     def test_validate_reference_consistency_warnings(self) -> None:
         """Singly-occupied orbitals in 'hole' subspace -> warning."""
         cfg = SFORMASConfig(
-            ref_spin=2, target_spin=0, n_spin_flips=1,
-            n_active_orbitals=4, n_active_electrons=4,
+            ref_spin=2,
+            target_spin=0,
+            n_spin_flips=1,
+            n_active_orbitals=4,
+            n_active_electrons=4,
             subspaces=[
                 Subspace("hole", [0, 1], 2, 4),
                 Subspace("sf_cas", [2, 3], 0, 4),
@@ -379,7 +432,9 @@ class TestReferenceAnalysis:
         # Orbital 0 is singly occupied but assigned to "hole" space (idx 0)
         active_occ = np.array([1.0, 2.0, 1.0, 0.0])
         result = validate_reference_consistency(
-            cfg, active_mo_occ=active_occ, sf_cas_subspace_idx=1,
+            cfg,
+            active_mo_occ=active_occ,
+            sf_cas_subspace_idx=1,
         )
         assert len(result["warnings"]) == 1
         assert "not in the SF-CAS" in result["warnings"][0]
@@ -404,8 +459,11 @@ class TestReferenceAnalysis:
         # directly by creating a config object that bypasses __post_init__.
         # Use object.__setattr__ after creation:
         cfg = SFORMASConfig(
-            ref_spin=2, target_spin=0, n_spin_flips=1,
-            n_active_orbitals=2, n_active_electrons=2,
+            ref_spin=2,
+            target_spin=0,
+            n_spin_flips=1,
+            n_active_orbitals=2,
+            n_active_electrons=2,
             subspaces=[Subspace("cas", [0, 1], 0, 4)],
         )
         # Manually override to create an inconsistent state for testing

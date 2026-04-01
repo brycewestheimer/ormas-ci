@@ -179,6 +179,4 @@ def test_qdk_h2o_restricted_ormas():
     mc_ref.verbose = 0
     e_ref = mc_ref.kernel()[0]
 
-    assert e_restricted >= e_ref - 1e-10, (
-        f"Restricted energy {e_restricted} below CASCI {e_ref}"
-    )
+    assert e_restricted >= e_ref - 1e-10, f"Restricted energy {e_restricted} below CASCI {e_ref}"

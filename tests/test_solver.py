@@ -11,9 +11,7 @@ def test_known_eigenvalues():
     h_mat = np.diag([1.0, 2.0, 3.0])
     energies, vectors = solve_ci(h_mat, n_roots=2)
 
-    assert np.allclose(energies, [1.0, 2.0]), (
-        f"Expected [1.0, 2.0], got {energies}"
-    )
+    assert np.allclose(energies, [1.0, 2.0]), f"Expected [1.0, 2.0], got {energies}"
 
 
 def test_eigenvectors_orthonormal():
@@ -79,6 +77,4 @@ def test_eigenvalues_sorted_ascending():
     energies, _ = solve_ci(h_mat, n_roots=4)
 
     for i in range(len(energies) - 1):
-        assert energies[i] <= energies[i + 1] + 1e-14, (
-            f"Eigenvalues not sorted: {energies}"
-        )
+        assert energies[i] <= energies[i + 1] + 1e-14, f"Eigenvalues not sorted: {energies}"

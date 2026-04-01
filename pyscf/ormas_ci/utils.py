@@ -67,7 +67,7 @@ def indices_to_bits(indices: list[int]) -> int:
     """
     n = 0
     for i in indices:
-        n |= (1 << i)
+        n |= 1 << i
     return n
 
 

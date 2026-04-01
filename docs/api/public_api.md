@@ -13,6 +13,7 @@ from pyscf.ormas_ci import (
     SFRASConfig,
     Subspace,
     build_determinant_list,
+    casci_determinant_count,
     count_determinants,
     generate_sf_determinants,
     count_sf_determinants,
@@ -25,6 +26,22 @@ from pyscf.ormas_ci import (
 ```{autoclass} pyscf.ormas_ci.ORMASFCISolver
 :members: __init__, kernel, make_rdm1, make_rdm1s, make_rdm12, make_rdm12s, spin_square, transform_ci_for_orbital_rotation, large_ci
 ```
+
+### Solver Tuning
+
+The solver automatically selects an eigensolver path based on the
+determinant space size.  These attributes can be adjusted on the
+`ORMASFCISolver` instance after construction:
+
+| Attribute | Default | Purpose |
+|-----------|---------|---------|
+| `direct_ci_threshold` | 200 | Determinant count below which the explicit Hamiltonian + dense `eigh` path is used. Increase if you have memory to spare and want exact diagonalisation for larger spaces. |
+| `einsum_string_threshold` | 300 | Unique-string-per-spin-channel count below which the Davidson + `SigmaEinsum` (pure-Python) iterative path is used. Above this the solver falls back to PySCF's C-level `selected_ci` sigma with ARPACK. |
+| `conv_tol` | 1e-12 | Davidson convergence tolerance on the residual norm. Loosen for faster but less precise iterative solves. |
+| `max_cycle` | 100 | Maximum Davidson iterations before the solver declares non-convergence. |
+| `max_space` | 12 | Maximum subspace dimension per root before Davidson restarts. |
+| `level_shift` | 0.001 | Preconditioner level shift for Davidson. Increase if convergence is oscillatory. |
+| `lindep` | 1e-14 | Linear-dependence threshold for Davidson subspace expansion. |
 
 ### PySCF Compatibility Methods
 

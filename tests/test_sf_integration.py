@@ -27,8 +27,11 @@ def test_sf_ormas_matches_casci_h2():
 
     # SF-ORMAS (triplet ref -> singlet target, no restrictions)
     sf_config = SFORMASConfig(
-        ref_spin=2, target_spin=0, n_spin_flips=1,
-        n_active_orbitals=2, n_active_electrons=2,
+        ref_spin=2,
+        target_spin=0,
+        n_spin_flips=1,
+        n_active_orbitals=2,
+        n_active_electrons=2,
         subspaces=[Subspace("all", [0, 1], 0, 4)],
     )
     mc_sf = mcscf.CASCI(mf, 2, (1, 1))
@@ -37,8 +40,7 @@ def test_sf_ormas_matches_casci_h2():
     e_sf = mc_sf.kernel()[0]
 
     assert abs(e_ref - e_sf) < 1e-10, (
-        f"Energy mismatch: PySCF={e_ref}, SF-ORMAS={e_sf}, "
-        f"diff={abs(e_ref - e_sf)}"
+        f"Energy mismatch: PySCF={e_ref}, SF-ORMAS={e_sf}, diff={abs(e_ref - e_sf)}"
     )
 
 
@@ -56,8 +58,11 @@ def test_sf_ormas_matches_casci_h2_equilibrium():
 
     # SF-ORMAS
     sf_config = SFORMASConfig(
-        ref_spin=2, target_spin=0, n_spin_flips=1,
-        n_active_orbitals=2, n_active_electrons=2,
+        ref_spin=2,
+        target_spin=0,
+        n_spin_flips=1,
+        n_active_orbitals=2,
+        n_active_electrons=2,
         subspaces=[Subspace("all", [0, 1], 0, 4)],
     )
     mc_sf = mcscf.CASCI(mf, 2, (1, 1))
@@ -66,8 +71,7 @@ def test_sf_ormas_matches_casci_h2_equilibrium():
     e_sf = mc_sf.kernel()[0]
 
     assert abs(e_ref - e_sf) < 1e-10, (
-        f"Energy mismatch: PySCF={e_ref}, SF-ORMAS={e_sf}, "
-        f"diff={abs(e_ref - e_sf)}"
+        f"Energy mismatch: PySCF={e_ref}, SF-ORMAS={e_sf}, diff={abs(e_ref - e_sf)}"
     )
 
 
@@ -79,8 +83,11 @@ def test_sf_ormas_nelecas_mismatch_raises():
     mf.run()
 
     sf_config = SFORMASConfig(
-        ref_spin=2, target_spin=0, n_spin_flips=1,
-        n_active_orbitals=2, n_active_electrons=2,
+        ref_spin=2,
+        target_spin=0,
+        n_spin_flips=1,
+        n_active_orbitals=2,
+        n_active_electrons=2,
         subspaces=[Subspace("all", [0, 1], 0, 4)],
     )
 
@@ -101,8 +108,11 @@ def test_sf_ormas_spin_pure_h2():
     mf.run()
 
     sf_config = SFORMASConfig(
-        ref_spin=2, target_spin=0, n_spin_flips=1,
-        n_active_orbitals=2, n_active_electrons=2,
+        ref_spin=2,
+        target_spin=0,
+        n_spin_flips=1,
+        n_active_orbitals=2,
+        n_active_electrons=2,
         subspaces=[Subspace("all", [0, 1], 0, 4)],
     )
     mc = mcscf.CASCI(mf, 2, (1, 1))
@@ -115,9 +125,7 @@ def test_sf_ormas_spin_pure_h2():
     for i in range(2):
         ss, mult = mc.fcisolver.spin_square(mc.ci[i], 2, (1, 1))
         s_val = (-1 + (1 + 4 * ss) ** 0.5) / 2
-        assert abs(s_val - round(s_val)) < 1e-6, (
-            f"Root {i}: S={s_val} is not a spin eigenstate"
-        )
+        assert abs(s_val - round(s_val)) < 1e-6, f"Root {i}: S={s_val} is not a spin eigenstate"
         s_values.append(round(s_val))
 
     # One singlet (S=0) and one triplet (S=1) component
@@ -138,8 +146,11 @@ def test_sf_ormas_spin_pure_larger():
     mf.run()
 
     sf_config = SFORMASConfig(
-        ref_spin=2, target_spin=0, n_spin_flips=1,
-        n_active_orbitals=4, n_active_electrons=4,
+        ref_spin=2,
+        target_spin=0,
+        n_spin_flips=1,
+        n_active_orbitals=4,
+        n_active_electrons=4,
         subspaces=[Subspace("all", list(range(4)), 0, 8)],
     )
     mc = mcscf.CASCI(mf, 4, (2, 2))
@@ -152,8 +163,7 @@ def test_sf_ormas_spin_pure_larger():
         ss, mult = mc.fcisolver.spin_square(mc.ci[i], 4, (2, 2))
         s_val = (-1 + (1 + 4 * ss) ** 0.5) / 2
         assert abs(s_val - round(s_val)) < 1e-6, (
-            f"Root {i}: S={s_val:.6f} is not a spin eigenstate "
-            f"(<S^2>={ss:.6f})"
+            f"Root {i}: S={s_val:.6f} is not a spin eigenstate (<S^2>={ss:.6f})"
         )
 
 
@@ -165,8 +175,11 @@ def test_sf_ormas_multiroot_energy_ordering():
     mf.run()
 
     sf_config = SFORMASConfig(
-        ref_spin=2, target_spin=0, n_spin_flips=1,
-        n_active_orbitals=2, n_active_electrons=2,
+        ref_spin=2,
+        target_spin=0,
+        n_spin_flips=1,
+        n_active_orbitals=2,
+        n_active_electrons=2,
         subspaces=[Subspace("all", [0, 1], 0, 4)],
     )
     mc = mcscf.CASCI(mf, 2, (1, 1))
@@ -189,8 +202,11 @@ def test_sf_ormas_casscf():
     mf.run()
 
     sf_config = SFORMASConfig(
-        ref_spin=2, target_spin=0, n_spin_flips=1,
-        n_active_orbitals=2, n_active_electrons=2,
+        ref_spin=2,
+        target_spin=0,
+        n_spin_flips=1,
+        n_active_orbitals=2,
+        n_active_electrons=2,
         subspaces=[Subspace("all", [0, 1], 0, 4)],
     )
 

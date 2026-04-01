@@ -27,9 +27,7 @@ from pyscf.ormas_ci.subspaces import ORMASConfig, Subspace
 
 def _h2_setup():
     """H2 6-31G, CAS(2,2)."""
-    mol = gto.M(
-        atom="H 0 0 0; H 0 0 0.74", basis="6-31g", verbose=0
-    )
+    mol = gto.M(atom="H 0 0 0; H 0 0 0.74", basis="6-31g", verbose=0)
     mf = scf.RHF(mol)
     mf.verbose = 0
     mf.run()
@@ -38,9 +36,7 @@ def _h2_setup():
 
 def _lih_setup():
     """LiH 6-31G, CAS(4,4)."""
-    mol = gto.M(
-        atom="Li 0 0 0; H 0 0 1.6", basis="6-31g", verbose=0
-    )
+    mol = gto.M(atom="Li 0 0 0; H 0 0 1.6", basis="6-31g", verbose=0)
     mf = scf.RHF(mol)
     mf.verbose = 0
     mf.run()
@@ -95,9 +91,7 @@ def _beh2_setup():
 
 def _n2_setup():
     """N2 6-31G, CAS(6,6)."""
-    mol = gto.M(
-        atom="N 0 0 0; N 0 0 1.09", basis="6-31g", verbose=0
-    )
+    mol = gto.M(atom="N 0 0 0; N 0 0 1.09", basis="6-31g", verbose=0)
     mf = scf.RHF(mol)
     mf.verbose = 0
     mf.run()
@@ -211,9 +205,7 @@ class TestOpenShell:
         mc.fcisolver = ORMASFCISolver(config)
         e_ormas = mc.kernel()[0]
 
-        assert abs(e_ref - e_ormas) < 1e-10, (
-            f"CH2 triplet: ref={e_ref}, ormas={e_ormas}"
-        )
+        assert abs(e_ref - e_ormas) < 1e-10, f"CH2 triplet: ref={e_ref}, ormas={e_ormas}"
 
     def test_o2_triplet_rohf_unrestricted(self):
         """O2 triplet with ROHF: unrestricted ORMAS matches CASCI."""
@@ -229,9 +221,7 @@ class TestOpenShell:
         mc.fcisolver = ORMASFCISolver(config)
         e_ormas = mc.kernel()[0]
 
-        assert abs(e_ref - e_ormas) < 1e-10, (
-            f"O2 triplet: ref={e_ref}, ormas={e_ormas}"
-        )
+        assert abs(e_ref - e_ormas) < 1e-10, f"O2 triplet: ref={e_ref}, ormas={e_ormas}"
 
     def test_ch2_triplet_restricted_variational(self):
         """CH2 triplet with 2 subspaces: energy >= CASCI."""
@@ -244,12 +234,16 @@ class TestOpenShell:
         config = ORMASConfig(
             subspaces=[
                 Subspace(
-                    "core", [0, 1, 2],
-                    min_electrons=2, max_electrons=6,
+                    "core",
+                    [0, 1, 2],
+                    min_electrons=2,
+                    max_electrons=6,
                 ),
                 Subspace(
-                    "virt", [3, 4, 5],
-                    min_electrons=0, max_electrons=4,
+                    "virt",
+                    [3, 4, 5],
+                    min_electrons=0,
+                    max_electrons=4,
                 ),
             ],
             n_active_orbitals=ncas,
@@ -275,12 +269,16 @@ class TestOpenShell:
         config = ORMASConfig(
             subspaces=[
                 Subspace(
-                    "core", [0, 1],
-                    min_electrons=1, max_electrons=4,
+                    "core",
+                    [0, 1],
+                    min_electrons=1,
+                    max_electrons=4,
                 ),
                 Subspace(
-                    "virt", [2, 3],
-                    min_electrons=0, max_electrons=3,
+                    "virt",
+                    [2, 3],
+                    min_electrons=0,
+                    max_electrons=3,
                 ),
             ],
             n_active_orbitals=ncas,
@@ -315,16 +313,22 @@ class TestThreeSubspaces:
         config = ORMASConfig(
             subspaces=[
                 Subspace(
-                    "sigma_g", [0, 1],
-                    min_electrons=1, max_electrons=4,
+                    "sigma_g",
+                    [0, 1],
+                    min_electrons=1,
+                    max_electrons=4,
                 ),
                 Subspace(
-                    "sigma_u", [2, 3],
-                    min_electrons=1, max_electrons=4,
+                    "sigma_u",
+                    [2, 3],
+                    min_electrons=1,
+                    max_electrons=4,
                 ),
                 Subspace(
-                    "delta", [4, 5],
-                    min_electrons=0, max_electrons=4,
+                    "delta",
+                    [4, 5],
+                    min_electrons=0,
+                    max_electrons=4,
                 ),
             ],
             n_active_orbitals=ncas,
@@ -341,9 +345,7 @@ class TestThreeSubspaces:
 
         n_ormas = count_determinants(config)
         n_casci = casci_determinant_count(ncas, nelecas)
-        assert n_ormas < n_casci, (
-            f"Expected det reduction: ORMAS={n_ormas}, CASCI={n_casci}"
-        )
+        assert n_ormas < n_casci, f"Expected det reduction: ORMAS={n_ormas}, CASCI={n_casci}"
 
     def test_n2_three_subspace_ormas(self):
         """N2 with 3 explicit ORMAS subspaces: variational bound."""
@@ -356,16 +358,22 @@ class TestThreeSubspaces:
         config = ORMASConfig(
             subspaces=[
                 Subspace(
-                    "sigma", [0, 1],
-                    min_electrons=1, max_electrons=4,
+                    "sigma",
+                    [0, 1],
+                    min_electrons=1,
+                    max_electrons=4,
                 ),
                 Subspace(
-                    "pi", [2, 3],
-                    min_electrons=1, max_electrons=4,
+                    "pi",
+                    [2, 3],
+                    min_electrons=1,
+                    max_electrons=4,
                 ),
                 Subspace(
-                    "sigma_star", [4, 5],
-                    min_electrons=0, max_electrons=4,
+                    "sigma_star",
+                    [4, 5],
+                    min_electrons=0,
+                    max_electrons=4,
                 ),
             ],
             n_active_orbitals=ncas,
@@ -387,16 +395,22 @@ class TestThreeSubspaces:
         config = ORMASConfig(
             subspaces=[
                 Subspace(
-                    "sigma_g", [0, 1],
-                    min_electrons=1, max_electrons=4,
+                    "sigma_g",
+                    [0, 1],
+                    min_electrons=1,
+                    max_electrons=4,
                 ),
                 Subspace(
-                    "sigma_u", [2, 3],
-                    min_electrons=1, max_electrons=4,
+                    "sigma_u",
+                    [2, 3],
+                    min_electrons=1,
+                    max_electrons=4,
                 ),
                 Subspace(
-                    "delta", [4, 5],
-                    min_electrons=0, max_electrons=4,
+                    "delta",
+                    [4, 5],
+                    min_electrons=0,
+                    max_electrons=4,
                 ),
             ],
             n_active_orbitals=ncas,
@@ -441,12 +455,8 @@ class TestSpinSquare:
         mc.kernel()
 
         ss, mult = mc.fcisolver.spin_square(mc.ci, ncas, nelecas)
-        assert abs(ss) < 1e-10, (
-            f"Expected <S^2>=0 for singlet, got {ss}"
-        )
-        assert abs(mult - 1.0) < 1e-10, (
-            f"Expected 2S+1=1 for singlet, got {mult}"
-        )
+        assert abs(ss) < 1e-10, f"Expected <S^2>=0 for singlet, got {ss}"
+        assert abs(mult - 1.0) < 1e-10, f"Expected 2S+1=1 for singlet, got {mult}"
 
     def test_spin_square_h2_triplet(self):
         """H2 excited state (triplet ms=0): <S^2>=2, 2S+1=3."""
@@ -465,21 +475,13 @@ class TestSpinSquare:
         # Find the root with <S^2> closest to 2.0 (triplet)
         found_triplet = False
         for i in range(len(energies)):
-            ss, mult = mc.fcisolver.spin_square(
-                civecs[i], ncas, nelecas
-            )
+            ss, mult = mc.fcisolver.spin_square(civecs[i], ncas, nelecas)
             if abs(ss - 2.0) < 0.1:
                 found_triplet = True
-                assert abs(ss - 2.0) < 1e-6, (
-                    f"Triplet root {i}: expected <S^2>=2, got {ss}"
-                )
-                assert abs(mult - 3.0) < 1e-6, (
-                    f"Triplet root {i}: expected 2S+1=3, got {mult}"
-                )
+                assert abs(ss - 2.0) < 1e-6, f"Triplet root {i}: expected <S^2>=2, got {ss}"
+                assert abs(mult - 3.0) < 1e-6, f"Triplet root {i}: expected 2S+1=3, got {mult}"
                 break
-        assert found_triplet, (
-            "No triplet state found among excited roots"
-        )
+        assert found_triplet, "No triplet state found among excited roots"
 
     def test_spin_square_ch2_triplet(self):
         """CH2 triplet: <S^2>=2, 2S+1=3."""
@@ -492,12 +494,8 @@ class TestSpinSquare:
         mc.kernel()
 
         ss, mult = mc.fcisolver.spin_square(mc.ci, ncas, nelecas)
-        assert abs(ss - 2.0) < 1e-6, (
-            f"CH2 triplet: expected <S^2>=2, got {ss}"
-        )
-        assert abs(mult - 3.0) < 1e-6, (
-            f"CH2 triplet: expected 2S+1=3, got {mult}"
-        )
+        assert abs(ss - 2.0) < 1e-6, f"CH2 triplet: expected <S^2>=2, got {ss}"
+        assert abs(mult - 3.0) < 1e-6, f"CH2 triplet: expected 2S+1=3, got {mult}"
 
     def test_spin_square_o2_triplet(self):
         """O2 triplet: <S^2>=2, 2S+1=3."""
@@ -510,12 +508,8 @@ class TestSpinSquare:
         mc.kernel()
 
         ss, mult = mc.fcisolver.spin_square(mc.ci, ncas, nelecas)
-        assert abs(ss - 2.0) < 1e-6, (
-            f"O2 triplet: expected <S^2>=2, got {ss}"
-        )
-        assert abs(mult - 3.0) < 1e-6, (
-            f"O2 triplet: expected 2S+1=3, got {mult}"
-        )
+        assert abs(ss - 2.0) < 1e-6, f"O2 triplet: expected <S^2>=2, got {ss}"
+        assert abs(mult - 3.0) < 1e-6, f"O2 triplet: expected 2S+1=3, got {mult}"
 
     def test_spin_square_raises_before_kernel(self):
         """spin_square raises RuntimeError if kernel() not called."""
@@ -558,9 +552,7 @@ class TestOpenShellRDM:
         mc_ref = mcscf.CASCI(mf, ncas, nelecas)
         mc_ref.verbose = 0
         mc_ref.kernel()
-        rdm1_ref = mc_ref.fcisolver.make_rdm1(
-            mc_ref.ci, ncas, nelecas
-        )
+        rdm1_ref = mc_ref.fcisolver.make_rdm1(mc_ref.ci, ncas, nelecas)
 
         # ORMAS unrestricted
         config = _unrestricted_config(ncas, nelecas)
@@ -571,7 +563,9 @@ class TestOpenShellRDM:
         rdm1_ormas = mc.fcisolver.make_rdm1(mc.ci, ncas, nelecas)
 
         np.testing.assert_allclose(
-            rdm1_ormas, rdm1_ref, atol=1e-8,
+            rdm1_ormas,
+            rdm1_ref,
+            atol=1e-8,
             err_msg="CH2 triplet: ORMAS rdm1 != PySCF rdm1",
         )
 
@@ -585,9 +579,7 @@ class TestOpenShellRDM:
         mc1.verbose = 0
         mc1.fcisolver = ORMASFCISolver(config)
         mc1.kernel()
-        rdm1_single = mc1.fcisolver.make_rdm1(
-            mc1.ci, ncas, nelecas
-        )
+        rdm1_single = mc1.fcisolver.make_rdm1(mc1.ci, ncas, nelecas)
 
         # Multi-root, extract ground state
         config2 = _unrestricted_config(ncas, nelecas)
@@ -597,11 +589,11 @@ class TestOpenShellRDM:
         mc2.fcisolver.nroots = 2
         mc2.kernel()
         civecs = mc2.ci
-        rdm1_multi = mc2.fcisolver.make_rdm1(
-            civecs[0], ncas, nelecas
-        )
+        rdm1_multi = mc2.fcisolver.make_rdm1(civecs[0], ncas, nelecas)
 
         np.testing.assert_allclose(
-            rdm1_multi, rdm1_single, atol=1e-10,
+            rdm1_multi,
+            rdm1_single,
+            atol=1e-10,
             err_msg="Multi-root ground-state rdm1 != single-root rdm1",
         )

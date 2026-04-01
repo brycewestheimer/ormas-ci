@@ -160,3 +160,191 @@ class TestSFConfigValidation:
         )
         with pytest.raises(ValueError, match="appears in multiple subspaces"):
             sf_config.to_ormas_config()
+
+
+# ---------------------------------------------------------------------------
+# nelecas validation
+# ---------------------------------------------------------------------------
+
+
+class TestNelecasValidation:
+    """ORMASConfig.validate() rejects invalid per-spin electron counts."""
+
+    def test_negative_alpha(self):
+        """nelecas=(-1, 3) must raise ValueError."""
+        with pytest.raises(ValueError, match="n_alpha.*cannot be negative"):
+            ORMASConfig(
+                subspaces=[Subspace("all", [0, 1], 0, 4)],
+                n_active_orbitals=2,
+                nelecas=(-1, 3),
+            ).validate()
+
+    def test_negative_beta(self):
+        """nelecas=(1, -1) must raise ValueError."""
+        with pytest.raises(ValueError, match="n_beta.*cannot be negative"):
+            ORMASConfig(
+                subspaces=[Subspace("all", [0, 1], 0, 4)],
+                n_active_orbitals=2,
+                nelecas=(1, -1),
+            ).validate()
+
+    def test_float_nelecas(self):
+        """nelecas=(0.5, 1.5) must raise TypeError."""
+        with pytest.raises(TypeError, match="nelecas n_alpha must be an integer"):
+            ORMASConfig(
+                subspaces=[Subspace("all", [0, 1], 0, 4)],
+                n_active_orbitals=2,
+                nelecas=(0.5, 1.5),
+            ).validate()
+
+    def test_nelecas_wrong_length(self):
+        """nelecas=(1,) must raise ValueError."""
+        with pytest.raises(ValueError, match="nelecas must be a 2-tuple"):
+            ORMASConfig(
+                subspaces=[Subspace("all", [0, 1], 0, 4)],
+                n_active_orbitals=2,
+                nelecas=(1,),
+            ).validate()
+
+    def test_alpha_exceeds_norb(self):
+        """nelecas=(5, 0) with n_active_orbitals=2 must raise ValueError."""
+        with pytest.raises(ValueError, match="n_alpha.*exceeds n_active_orbitals"):
+            ORMASConfig(
+                subspaces=[Subspace("all", [0, 1], 0, 4)],
+                n_active_orbitals=2,
+                nelecas=(5, 0),
+            ).validate()
+
+    def test_valid_nelecas_passes(self):
+        """nelecas=(1, 1) with n_active_orbitals=2 should pass."""
+        config = ORMASConfig(
+            subspaces=[Subspace("all", [0, 1], 0, 4)],
+            n_active_orbitals=2,
+            nelecas=(1, 1),
+        )
+        config.validate()  # Should not raise
+
+
+class TestNelecasNormalize:
+    """_normalize_nelecas rejects negative tuple components."""
+
+    def test_negative_tuple(self):
+        """Passing a tuple with negatives to _normalize_nelecas raises ValueError."""
+        config = ORMASConfig(
+            subspaces=[Subspace("all", [0, 1], 0, 4)],
+            n_active_orbitals=2,
+            nelecas=(1, 1),
+        )
+        solver = ORMASFCISolver(config)
+        with pytest.raises(ValueError, match="nelecas components must be non-negative"):
+            solver._normalize_nelecas((-1, 3))
+
+
+# ---------------------------------------------------------------------------
+# Orbital index type validation
+# ---------------------------------------------------------------------------
+
+
+class TestOrbitalIndexTypeValidation:
+    """Subspace.validate() rejects non-integer orbital indices."""
+
+    def test_float_indices(self):
+        """orbital_indices=[0.0, 1.0] must raise TypeError."""
+        sub = Subspace("test", [0.0, 1.0], 0, 4)
+        with pytest.raises(TypeError, match="orbital_indices must contain integers"):
+            sub.validate()
+
+    def test_string_index(self):
+        """orbital_indices=[0, '1'] must raise TypeError."""
+        sub = Subspace("test", [0, "1"], 0, 4)
+        with pytest.raises(TypeError, match="orbital_indices must contain integers"):
+            sub.validate()
+
+    def test_valid_int_indices(self):
+        """orbital_indices=[0, 1] should pass."""
+        sub = Subspace("test", [0, 1], 0, 4)
+        sub.validate()  # Should not raise
+
+    def test_numpy_int_indices(self):
+        """numpy integer indices should be accepted."""
+        sub = Subspace("test", [np.int64(0), np.int64(1)], 0, 4)
+        sub.validate()  # Should not raise
+
+
+# ---------------------------------------------------------------------------
+# Duplicate subspace name validation
+# ---------------------------------------------------------------------------
+
+
+class TestDuplicateSubspaceNames:
+    """ORMASConfig.validate() rejects duplicate subspace names."""
+
+    def test_duplicate_names(self):
+        """Two subspaces named 'RAS1' must raise ValueError."""
+        with pytest.raises(ValueError, match="Duplicate subspace names"):
+            ORMASConfig(
+                subspaces=[
+                    Subspace("RAS1", [0], 0, 2),
+                    Subspace("RAS1", [1], 0, 2),
+                ],
+                n_active_orbitals=2,
+                nelecas=(1, 1),
+            ).validate()
+
+    def test_unique_names_pass(self):
+        """Subspaces with different names should pass."""
+        config = ORMASConfig(
+            subspaces=[
+                Subspace("A", [0], 0, 2),
+                Subspace("B", [1], 0, 2),
+            ],
+            n_active_orbitals=2,
+            nelecas=(1, 1),
+        )
+        config.validate()  # Should not raise
+
+
+# ---------------------------------------------------------------------------
+# ORMASConfig.unrestricted() convenience constructor
+# ---------------------------------------------------------------------------
+
+
+class TestUnrestrictedConstructor:
+    """ORMASConfig.unrestricted() creates a valid single-subspace config."""
+
+    def test_basic_creation(self):
+        """unrestricted(4, (2, 2)) should produce a valid config."""
+        config = ORMASConfig.unrestricted(4, (2, 2))
+        assert config.n_active_orbitals == 4
+        assert config.nelecas == (2, 2)
+        assert len(config.subspaces) == 1
+        assert config.subspaces[0].name == "all"
+        assert config.subspaces[0].orbital_indices == [0, 1, 2, 3]
+        assert config.subspaces[0].min_electrons == 0
+        assert config.subspaces[0].max_electrons == 8
+
+    def test_custom_name(self):
+        """Custom subspace name should be used."""
+        config = ORMASConfig.unrestricted(2, (1, 1), name="cas")
+        assert config.subspaces[0].name == "cas"
+
+    def test_matches_manual(self):
+        """unrestricted() should match a manually constructed equivalent."""
+        manual = ORMASConfig(
+            subspaces=[Subspace("all", [0, 1, 2], 0, 6)],
+            n_active_orbitals=3,
+            nelecas=(2, 1),
+        )
+        factory = ORMASConfig.unrestricted(3, (2, 1))
+
+        assert factory.n_active_orbitals == manual.n_active_orbitals
+        assert factory.nelecas == manual.nelecas
+        assert len(factory.subspaces) == len(manual.subspaces)
+        assert factory.subspaces[0].orbital_indices == manual.subspaces[0].orbital_indices
+        assert factory.subspaces[0].min_electrons == manual.subspaces[0].min_electrons
+        assert factory.subspaces[0].max_electrons == manual.subspaces[0].max_electrons
+
+    def test_validates_on_creation(self):
+        """Invalid args should raise during construction."""
+        with pytest.raises(ValueError):
+            ORMASConfig.unrestricted(2, (-1, 3))

@@ -64,7 +64,7 @@ def test_h2_dissociation():
         delta = abs(energies_ormas[i + 1] - energies_ormas[i])
         assert delta < 1.0, (
             f"Suspicious energy jump between R={bond_lengths[i]} and "
-            f"R={bond_lengths[i+1]}: delta={delta} Hartree"
+            f"R={bond_lengths[i + 1]}: delta={delta} Hartree"
         )
 
 
@@ -106,16 +106,12 @@ def test_n2_ras():
     e_test = mc_test.kernel()[0]
 
     # Variational bound: restricted energy >= CASCI energy
-    assert e_test >= e_ref - 1e-10, (
-        f"Variational violation: RAS={e_test} < CASCI={e_ref}"
-    )
+    assert e_test >= e_ref - 1e-10, f"Variational violation: RAS={e_test} < CASCI={e_ref}"
 
     # Determinant reduction
     n_ras = count_determinants(config)
     n_casci = casci_determinant_count(ncas, nelecas)
-    assert n_ras < n_casci, (
-        f"Expected fewer determinants: RAS={n_ras}, CASCI={n_casci}"
-    )
+    assert n_ras < n_casci, f"Expected fewer determinants: RAS={n_ras}, CASCI={n_casci}"
     assert n_ras > 0, "RAS determinant count should be positive"
 
 
@@ -159,14 +155,10 @@ def test_h2o_ormas():
     e_test = mc_test.kernel()[0]
 
     # Variational bound: restricted energy >= CASCI energy
-    assert e_test >= e_ref - 1e-10, (
-        f"Variational violation: ORMAS={e_test} < CASCI={e_ref}"
-    )
+    assert e_test >= e_ref - 1e-10, f"Variational violation: ORMAS={e_test} < CASCI={e_ref}"
 
     # Determinant reduction
     n_ormas = count_determinants(config)
     n_casci = casci_determinant_count(ncas, nelecas)
-    assert n_ormas < n_casci, (
-        f"Expected fewer determinants: ORMAS={n_ormas}, CASCI={n_casci}"
-    )
+    assert n_ormas < n_casci, f"Expected fewer determinants: ORMAS={n_ormas}, CASCI={n_casci}"
     assert n_ormas > 0, "ORMAS determinant count should be positive"

@@ -2,52 +2,27 @@
 
 import numpy as np
 
-from pyscf import ao2mo, fci, gto, mcscf, scf
 from pyscf.ormas_ci.hamiltonian import _precompute_excitation_pairs, build_ci_hamiltonian
 from pyscf.ormas_ci.utils import generate_strings
 
 
-def _get_h2_setup():
-    """Get H2/6-31G integrals and determinant strings.
-
-    Returns:
-        (alpha_strings, beta_strings, h1e, h2e, e_fci)
-    """
-    mol = gto.M(atom="H 0 0 0; H 0 0 0.74", basis="6-31g", verbose=0)
-    mf = scf.RHF(mol)
-    mf.verbose = 0
-    mf.run()
-    mc = mcscf.CASCI(mf, 2, 2)
-    mc.verbose = 0
-    h1e, ecore = mc.get_h1eff()
-    h2e = mc.get_h2eff()
-    h2e = ao2mo.restore(1, h2e, 2)
-
-    e_fci, _ = fci.direct_spin1.kernel(h1e, h2e, 2, 2)
-
-    alpha_strings = generate_strings(2, 1)
-    beta_strings = generate_strings(2, 1)
-
-    # Flatten into determinant-pair arrays (alpha x beta)
+def _make_det_arrays(ncas, nelec_per_spin):
+    """Build determinant-pair arrays for a full CAS product space."""
+    alpha_strings = generate_strings(ncas, nelec_per_spin)
+    beta_strings = generate_strings(ncas, nelec_per_spin)
     all_alpha = []
     all_beta = []
     for a in alpha_strings:
         for b in beta_strings:
             all_alpha.append(a)
             all_beta.append(b)
-
-    return (
-        np.array(all_alpha, dtype=np.int64),
-        np.array(all_beta, dtype=np.int64),
-        h1e,
-        h2e,
-        e_fci,
-    )
+    return np.array(all_alpha, dtype=np.int64), np.array(all_beta, dtype=np.int64)
 
 
-def test_h2_hamiltonian_eigenvalues():
+def test_h2_hamiltonian_eigenvalues(h2_active_integrals):
     """Full H2 Hamiltonian eigenvalues match PySCF FCI ground state."""
-    alpha, beta, h1e, h2e, e_fci = _get_h2_setup()
+    h1e, h2e, _, e_fci = h2_active_integrals
+    alpha, beta = _make_det_arrays(2, 1)
     h_ci = build_ci_hamiltonian(alpha, beta, h1e, h2e)
 
     eigenvalues = np.sort(np.linalg.eigvalsh(h_ci))
@@ -56,9 +31,10 @@ def test_h2_hamiltonian_eigenvalues():
     )
 
 
-def test_symmetry():
+def test_symmetry(h2_active_integrals):
     """Hamiltonian matrix produced by build_ci_hamiltonian is symmetric."""
-    alpha, beta, h1e, h2e, _ = _get_h2_setup()
+    h1e, h2e, _, _ = h2_active_integrals
+    alpha, beta = _make_det_arrays(2, 1)
     h_ci = build_ci_hamiltonian(alpha, beta, h1e, h2e)
 
     if hasattr(h_ci, "toarray"):
@@ -69,13 +45,14 @@ def test_symmetry():
     assert np.allclose(h_dense, h_dense.T, atol=1e-14), "Hamiltonian is not symmetric"
 
 
-def test_sparse_dense_agree():
+def test_sparse_dense_agree(h2_active_integrals):
     """Sparse and dense construction paths produce the same matrix.
 
     Force sparse by setting sparse_threshold=0, and force dense by setting
     sparse_threshold=999999.
     """
-    alpha, beta, h1e, h2e, _ = _get_h2_setup()
+    h1e, h2e, _, _ = h2_active_integrals
+    alpha, beta = _make_det_arrays(2, 1)
 
     h_dense = build_ci_hamiltonian(
         alpha,
@@ -100,9 +77,10 @@ def test_sparse_dense_agree():
     )
 
 
-def test_hamiltonian_dimensions():
+def test_hamiltonian_dimensions(h2_active_integrals):
     """Hamiltonian has shape (n_det, n_det)."""
-    alpha, beta, h1e, h2e, _ = _get_h2_setup()
+    h1e, h2e, _, _ = h2_active_integrals
+    alpha, beta = _make_det_arrays(2, 1)
     h_ci = build_ci_hamiltonian(alpha, beta, h1e, h2e)
 
     n_det = len(alpha)
@@ -110,9 +88,10 @@ def test_hamiltonian_dimensions():
         assert h_ci.shape == (n_det, n_det), f"Expected shape ({n_det}, {n_det}), got {h_ci.shape}"
 
 
-def test_sparse_output_type():
+def test_sparse_output_type(h2_active_integrals):
     """When sparse_threshold=0, output should be a sparse matrix."""
-    alpha, beta, h1e, h2e, _ = _get_h2_setup()
+    h1e, h2e, _, _ = h2_active_integrals
+    alpha, beta = _make_det_arrays(2, 1)
     h_ci = build_ci_hamiltonian(
         alpha,
         beta,

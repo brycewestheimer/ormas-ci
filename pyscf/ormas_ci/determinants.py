@@ -66,7 +66,7 @@ def _enumerate_distributions(
 
             remaining_alpha = n_alpha_remaining - na
             remaining_beta = n_beta_remaining - nb
-            remaining_subs = subspaces[idx + 1:]
+            remaining_subs = subspaces[idx + 1 :]
 
             # Pruning: check feasibility for remaining subspaces
             if remaining_subs:
@@ -86,10 +86,16 @@ def _enumerate_distributions(
 
             current_alpha.append(na)
             current_beta.append(nb)
-            results.extend(_enumerate_distributions(
-                subspaces, remaining_alpha, remaining_beta,
-                current_alpha, current_beta, idx + 1,
-            ))
+            results.extend(
+                _enumerate_distributions(
+                    subspaces,
+                    remaining_alpha,
+                    remaining_beta,
+                    current_alpha,
+                    current_beta,
+                    idx + 1,
+                )
+            )
             current_alpha.pop()
             current_beta.pop()
 
@@ -109,8 +115,12 @@ def enumerate_distributions(
         of alpha electrons in subspace k.
     """
     return _enumerate_distributions(
-        config.subspaces, config.n_alpha, config.n_beta,
-        [], [], 0,
+        config.subspaces,
+        config.n_alpha,
+        config.n_beta,
+        [],
+        [],
+        0,
     )
 
 
@@ -133,7 +143,7 @@ def _subspace_strings_to_full(
     full_string = 0
     for local_idx, global_idx in enumerate(orbital_indices):
         if subspace_string & (1 << local_idx):
-            full_string |= (1 << global_idx)
+            full_string |= 1 << global_idx
     return full_string
 
 
@@ -169,14 +179,8 @@ def build_determinant_list(
             local_alpha = generate_strings(sub.n_orbitals, na_k)
             local_beta = generate_strings(sub.n_orbitals, nb_k)
 
-            full_alpha = [
-                _subspace_strings_to_full(s, sub.orbital_indices)
-                for s in local_alpha
-            ]
-            full_beta = [
-                _subspace_strings_to_full(s, sub.orbital_indices)
-                for s in local_beta
-            ]
+            full_alpha = [_subspace_strings_to_full(s, sub.orbital_indices) for s in local_alpha]
+            full_beta = [_subspace_strings_to_full(s, sub.orbital_indices) for s in local_beta]
 
             subspace_alpha_lists.append(full_alpha)
             subspace_beta_lists.append(full_beta)

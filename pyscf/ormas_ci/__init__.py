@@ -30,7 +30,11 @@ is carried entirely by the ORMASFCISolver object. PySCF's CASCI handles orbital
 setup and integral transformation; our solver handles the restricted CI internally.
 """
 
-from pyscf.ormas_ci.determinants import build_determinant_list, count_determinants
+from pyscf.ormas_ci.determinants import (
+    build_determinant_list,
+    casci_determinant_count,
+    count_determinants,
+)
 from pyscf.ormas_ci.fcisolver import ORMASFCISolver, SFORMASFCISolver
 from pyscf.ormas_ci.spinflip import (
     count_sf_determinants,
@@ -50,6 +54,7 @@ __all__ = [
     "ORMASFCISolver",
     "SFORMASFCISolver",
     "build_determinant_list",
+    "casci_determinant_count",
     "count_determinants",
     "generate_sf_determinants",
     "count_sf_determinants",

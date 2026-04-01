@@ -13,6 +13,8 @@ No modifications to PySCF or QDK/Chemistry are required.
 
 from dataclasses import dataclass
 
+import numpy as np
+
 __all__ = ["Subspace", "ORMASConfig", "RASConfig", "SFORMASConfig", "SFRASConfig"]
 
 
@@ -55,6 +57,8 @@ class Subspace:
             )
         if len(self.orbital_indices) != len(set(self.orbital_indices)):
             raise ValueError(f"Subspace '{self.name}': orbital_indices contains duplicates")
+        if any(not isinstance(i, (int, np.integer)) for i in self.orbital_indices):
+            raise TypeError(f"Subspace '{self.name}': orbital_indices must contain integers")
         if any(i < 0 for i in self.orbital_indices):
             raise ValueError(f"Subspace '{self.name}': orbital_indices contains negative values")
 
@@ -106,6 +110,12 @@ class ORMASConfig:
         for sub in self.subspaces:
             sub.validate()
 
+        # Subspace names must be unique
+        names = [sub.name for sub in self.subspaces]
+        if len(names) != len(set(names)):
+            dupes = {n for n in names if names.count(n) > 1}
+            raise ValueError(f"Duplicate subspace names: {dupes}")
+
         # Orbital indices must be non-overlapping
         all_indices = []
         for sub in self.subspaces:
@@ -120,6 +130,24 @@ class ORMASConfig:
                 f"Subspace orbital indices {sorted(all_indices)} do not "
                 f"cover the full active space [0, {self.n_active_orbitals})"
             )
+
+        # Validate per-spin electron counts (must come before n_electrons access)
+        if len(self.nelecas) != 2:
+            raise ValueError(
+                f"nelecas must be a 2-tuple (n_alpha, n_beta), got length {len(self.nelecas)}"
+            )
+        for i, label in enumerate(("n_alpha", "n_beta")):
+            if not isinstance(self.nelecas[i], (int, np.integer)):
+                raise TypeError(
+                    f"nelecas {label} must be an integer, got {type(self.nelecas[i]).__name__}"
+                )
+            if self.nelecas[i] < 0:
+                raise ValueError(f"nelecas {label} ({self.nelecas[i]}) cannot be negative")
+            if self.nelecas[i] > self.n_active_orbitals:
+                raise ValueError(
+                    f"nelecas {label} ({self.nelecas[i]}) exceeds "
+                    f"n_active_orbitals ({self.n_active_orbitals})"
+                )
 
         # Global electron constraints must be satisfiable
         total_min = sum(sub.min_electrons for sub in self.subspaces)
@@ -136,6 +164,26 @@ class ORMASConfig:
                 f"Total electrons ({n_total}) exceeds the sum of "
                 f"subspace max_electrons ({total_max})"
             )
+
+    @classmethod
+    def unrestricted(cls, ncas: int, nelecas: tuple[int, int], name: str = "all") -> "ORMASConfig":
+        """Create an unrestricted single-subspace config (equivalent to full CASCI).
+
+        Args:
+            ncas: Number of active orbitals.
+            nelecas: Tuple of (n_alpha, n_beta) active electrons.
+            name: Name for the single subspace.
+
+        Returns:
+            Validated ORMASConfig with one unrestricted subspace.
+        """
+        config = cls(
+            subspaces=[Subspace(name, list(range(ncas)), 0, 2 * ncas)],
+            n_active_orbitals=ncas,
+            nelecas=nelecas,
+        )
+        config.validate()
+        return config
 
     def get_subspace_for_orbital(self, orbital_idx: int) -> "Subspace":
         """Return the subspace containing the given orbital index."""

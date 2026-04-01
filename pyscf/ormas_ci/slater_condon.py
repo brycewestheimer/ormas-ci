@@ -21,7 +21,8 @@ __all__ = ["matrix_element", "excitation_info"]
 
 
 def excitation_info(
-    str_i: int, str_j: int,
+    str_i: int,
+    str_j: int,
 ) -> tuple[int, tuple[int, ...], tuple[int, ...]]:
     """Analyze the excitation between two same-spin occupation strings.
 
@@ -42,8 +43,10 @@ def excitation_info(
 
 
 def _compute_diagonal(
-    alpha: int, beta: int,
-    h1e: np.ndarray, h2e: np.ndarray,
+    alpha: int,
+    beta: int,
+    h1e: np.ndarray,
+    h2e: np.ndarray,
 ) -> float:
     """Compute diagonal Hamiltonian element <det|H|det>.
 
@@ -66,12 +69,12 @@ def _compute_diagonal(
 
     # Alpha-alpha Coulomb and exchange
     for i, p in enumerate(occ_a):
-        for q in occ_a[i + 1:]:
+        for q in occ_a[i + 1 :]:
             energy += h2e[p, p, q, q] - h2e[p, q, q, p]
 
     # Beta-beta Coulomb and exchange
     for i, p in enumerate(occ_b):
-        for q in occ_b[i + 1:]:
+        for q in occ_b[i + 1 :]:
             energy += h2e[p, p, q, q] - h2e[p, q, q, p]
 
     # Alpha-beta Coulomb only (no exchange for opposite spin)
@@ -83,9 +86,12 @@ def _compute_diagonal(
 
 
 def _compute_single(
-    alpha_i: int, beta_i: int,
-    alpha_j: int, beta_j: int,
-    h1e: np.ndarray, h2e: np.ndarray,
+    alpha_i: int,
+    beta_i: int,
+    alpha_j: int,
+    beta_j: int,
+    h1e: np.ndarray,
+    h2e: np.ndarray,
 ) -> float:
     """Compute matrix element for a single excitation (one spin-orbital differs).
 
@@ -100,7 +106,7 @@ def _compute_single(
     if a_ndiff == 1 and b_ndiff == 0:
         # Alpha single excitation
         _, holes, particles = excitation_info(alpha_i, alpha_j)
-        p = holes[0]   # annihilate from p
+        p = holes[0]  # annihilate from p
         q = particles[0]  # create at q
         sign = compute_phase(alpha_i, p, q)
 
@@ -141,9 +147,12 @@ def _compute_single(
 
 
 def _compute_double(
-    alpha_i: int, beta_i: int,
-    alpha_j: int, beta_j: int,
-    h1e: np.ndarray, h2e: np.ndarray,
+    alpha_i: int,
+    beta_i: int,
+    alpha_j: int,
+    beta_j: int,
+    h1e: np.ndarray,
+    h2e: np.ndarray,
 ) -> float:
     """Compute matrix element for a double excitation (two spin-orbitals differ).
 
@@ -158,7 +167,7 @@ def _compute_double(
     if a_ndiff == 2 and b_ndiff == 0:
         # Alpha-alpha double excitation
         _, holes, particles = excitation_info(alpha_i, alpha_j)
-        p, q = holes[0], holes[1]      # annihilate from p and q
+        p, q = holes[0], holes[1]  # annihilate from p and q
         r, s = particles[0], particles[1]  # create at r and s
 
         # Phase for first excitation: p -> r on original string
@@ -201,9 +210,9 @@ def _compute_double(
         _, a_holes, a_particles = excitation_info(alpha_i, alpha_j)
         _, b_holes, b_particles = excitation_info(beta_i, beta_j)
 
-        p = a_holes[0]      # alpha annihilation
+        p = a_holes[0]  # alpha annihilation
         r = a_particles[0]  # alpha creation
-        q = b_holes[0]      # beta annihilation
+        q = b_holes[0]  # beta annihilation
         s = b_particles[0]  # beta creation
 
         sign_a = compute_phase(alpha_i, p, r)
@@ -216,9 +225,12 @@ def _compute_double(
 
 
 def matrix_element(
-    alpha_i: int, beta_i: int,
-    alpha_j: int, beta_j: int,
-    h1e: np.ndarray, h2e: np.ndarray,
+    alpha_i: int,
+    beta_i: int,
+    alpha_j: int,
+    beta_j: int,
+    h1e: np.ndarray,
+    h2e: np.ndarray,
 ) -> float:
     """Compute <det_i|H|det_j> using Slater-Condon rules.
 
@@ -246,12 +258,8 @@ def matrix_element(
     if n_excitations == 0:
         return _compute_diagonal(alpha_i, beta_i, h1e, h2e)
     elif n_excitations == 1:
-        return _compute_single(
-            alpha_i, beta_i, alpha_j, beta_j, h1e, h2e
-        )
+        return _compute_single(alpha_i, beta_i, alpha_j, beta_j, h1e, h2e)
     elif n_excitations == 2:
-        return _compute_double(
-            alpha_i, beta_i, alpha_j, beta_j, h1e, h2e
-        )
+        return _compute_double(alpha_i, beta_i, alpha_j, beta_j, h1e, h2e)
     else:
         return 0.0

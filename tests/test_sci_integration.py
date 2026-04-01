@@ -16,6 +16,7 @@ from pyscf.ormas_ci import ORMASConfig, ORMASFCISolver, Subspace
 
 # ---------- fixtures ----------
 
+
 @pytest.fixture(scope="module")
 def n2_mf():
     """N2/6-31G RHF — CAS(6,6) gives 400 determinants."""
@@ -46,16 +47,25 @@ def _run_solver(mf, config, ncas, nelecas, *, threshold, nroots=1):
 
 # ---------- single-root tests ----------
 
+
 class TestSCIvsExplicitSingleRoot:
     """Compare SCI and explicit paths for ground-state properties."""
 
     @pytest.fixture(autouse=True)
     def setup(self, n2_mf, n2_cas66_config):
         self.mc_sci = _run_solver(
-            n2_mf, n2_cas66_config, 6, 6, threshold=50,
+            n2_mf,
+            n2_cas66_config,
+            6,
+            6,
+            threshold=50,
         )
         self.mc_explicit = _run_solver(
-            n2_mf, n2_cas66_config, 6, 6, threshold=999999,
+            n2_mf,
+            n2_cas66_config,
+            6,
+            6,
+            threshold=999999,
         )
         # Verify the two paths are actually different
         assert self.mc_sci.fcisolver._use_sci
@@ -66,39 +76,55 @@ class TestSCIvsExplicitSingleRoot:
 
     def test_rdm1_agreement(self):
         rdm1_sci = self.mc_sci.fcisolver.make_rdm1(
-            self.mc_sci.ci, 6, (3, 3),
+            self.mc_sci.ci,
+            6,
+            (3, 3),
         )
         rdm1_exp = self.mc_explicit.fcisolver.make_rdm1(
-            self.mc_explicit.ci, 6, (3, 3),
+            self.mc_explicit.ci,
+            6,
+            (3, 3),
         )
         assert np.allclose(rdm1_sci, rdm1_exp, atol=1e-10)
 
     def test_rdm12_agreement(self):
         rdm1_sci, rdm2_sci = self.mc_sci.fcisolver.make_rdm12(
-            self.mc_sci.ci, 6, (3, 3),
+            self.mc_sci.ci,
+            6,
+            (3, 3),
         )
         rdm1_exp, rdm2_exp = self.mc_explicit.fcisolver.make_rdm12(
-            self.mc_explicit.ci, 6, (3, 3),
+            self.mc_explicit.ci,
+            6,
+            (3, 3),
         )
         assert np.allclose(rdm1_sci, rdm1_exp, atol=1e-10)
         assert np.allclose(rdm2_sci, rdm2_exp, atol=1e-10)
 
     def test_rdm1s_agreement(self):
         rdm1a_sci, rdm1b_sci = self.mc_sci.fcisolver.make_rdm1s(
-            self.mc_sci.ci, 6, (3, 3),
+            self.mc_sci.ci,
+            6,
+            (3, 3),
         )
         rdm1a_exp, rdm1b_exp = self.mc_explicit.fcisolver.make_rdm1s(
-            self.mc_explicit.ci, 6, (3, 3),
+            self.mc_explicit.ci,
+            6,
+            (3, 3),
         )
         assert np.allclose(rdm1a_sci, rdm1a_exp, atol=1e-10)
         assert np.allclose(rdm1b_sci, rdm1b_exp, atol=1e-10)
 
     def test_spin_square_agreement(self):
         ss_sci, mult_sci = self.mc_sci.fcisolver.spin_square(
-            self.mc_sci.ci, 6, (3, 3),
+            self.mc_sci.ci,
+            6,
+            (3, 3),
         )
         ss_exp, mult_exp = self.mc_explicit.fcisolver.spin_square(
-            self.mc_explicit.ci, 6, (3, 3),
+            self.mc_explicit.ci,
+            6,
+            (3, 3),
         )
         assert abs(ss_sci - ss_exp) < 1e-10
         assert abs(mult_sci - mult_exp) < 1e-10
@@ -116,18 +142,29 @@ class TestSCIvsExplicitSingleRoot:
         h1e = self.mc_explicit.fcisolver._h1e
         eri = self.mc_explicit.fcisolver._eri
         eri_abs = self.mc_explicit.fcisolver.absorb_h1e(
-            h1e, eri, 6, (3, 3), fac=0.5,
+            h1e,
+            eri,
+            6,
+            (3, 3),
+            fac=0.5,
         )
         sigma_sci = self.mc_sci.fcisolver.contract_2e(
-            eri_abs, ci, 6, (3, 3),
+            eri_abs,
+            ci,
+            6,
+            (3, 3),
         )
         sigma_exp = self.mc_explicit.fcisolver.contract_2e(
-            eri_abs, ci, 6, (3, 3),
+            eri_abs,
+            ci,
+            6,
+            (3, 3),
         )
         assert np.allclose(sigma_sci, sigma_exp, atol=1e-12)
 
 
 # ---------- multi-root tests ----------
+
 
 class TestSCIvsExplicitMultiRoot:
     """Compare SCI and explicit paths for multi-root calculations.
@@ -141,12 +178,20 @@ class TestSCIvsExplicitMultiRoot:
     @pytest.fixture(autouse=True)
     def setup(self, n2_mf, n2_cas66_config):
         self.mc_sci = _run_solver(
-            n2_mf, n2_cas66_config, 6, 6,
-            threshold=50, nroots=3,
+            n2_mf,
+            n2_cas66_config,
+            6,
+            6,
+            threshold=50,
+            nroots=3,
         )
         self.mc_explicit = _run_solver(
-            n2_mf, n2_cas66_config, 6, 6,
-            threshold=999999, nroots=3,
+            n2_mf,
+            n2_cas66_config,
+            6,
+            6,
+            threshold=999999,
+            nroots=3,
         )
 
     def test_multi_root_ground_state_energy(self):
@@ -162,12 +207,11 @@ class TestSCIvsExplicitMultiRoot:
             sigma = solver._sigma_sci(ci)
             e_i = np.dot(ci, sigma)
             residual = np.linalg.norm(sigma - e_i * ci)
-            assert residual < 1e-6, (
-                f"Root {i} residual {residual:.2e} too large"
-            )
+            assert residual < 1e-6, f"Root {i} residual {residual:.2e} too large"
 
 
 # ---------- edge case tests ----------
+
 
 class TestSCIEdgeCases:
     """Edge cases for the SCI path."""
@@ -232,7 +276,10 @@ class TestSCIEdgeCases:
         rdm12s_sci = solver.make_rdm12s(ci, ncas, nelecas)
         ss_sci, mult_sci = solver.spin_square(ci, ncas, nelecas)
         hdiag_sci = solver.make_hdiag(
-            solver._h1e, solver._eri, ncas, nelecas,
+            solver._h1e,
+            solver._eri,
+            ncas,
+            nelecas,
         )
 
         # Disable SCI to force Python fallback
@@ -246,7 +293,10 @@ class TestSCIEdgeCases:
         rdm12s_py = solver.make_rdm12s(ci, ncas, nelecas)
         ss_py, mult_py = solver.spin_square(ci, ncas, nelecas)
         hdiag_py = solver.make_hdiag(
-            solver._h1e, solver._eri, ncas, nelecas,
+            solver._h1e,
+            solver._eri,
+            ncas,
+            nelecas,
         )
 
         # Restore

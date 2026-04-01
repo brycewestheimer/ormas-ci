@@ -48,40 +48,26 @@ def _h2_ci_solution():
 
 def test_rdm1_trace():
     """Trace of RDM1 must equal total number of electrons."""
-    ci_vector, alpha_strings, beta_strings, ncas, _, _, _ = (
-        _h2_ci_solution()
-    )
+    ci_vector, alpha_strings, beta_strings, ncas, _, _, _ = _h2_ci_solution()
     rdm1 = make_rdm1(ci_vector, alpha_strings, beta_strings, ncas)
-    assert abs(np.trace(rdm1) - 2.0) < 1e-10, (
-        f"Trace of RDM1 = {np.trace(rdm1)}, expected 2.0"
-    )
+    assert abs(np.trace(rdm1) - 2.0) < 1e-10, f"Trace of RDM1 = {np.trace(rdm1)}, expected 2.0"
 
 
 def test_rdm1_symmetry():
     """RDM1 must be symmetric: rdm1[p,q] == rdm1[q,p]."""
-    ci_vector, alpha_strings, beta_strings, ncas, _, _, _ = (
-        _h2_ci_solution()
-    )
+    ci_vector, alpha_strings, beta_strings, ncas, _, _, _ = _h2_ci_solution()
     rdm1 = make_rdm1(ci_vector, alpha_strings, beta_strings, ncas)
-    assert np.allclose(rdm1, rdm1.T, atol=1e-12), (
-        "RDM1 is not symmetric"
-    )
+    assert np.allclose(rdm1, rdm1.T, atol=1e-12), "RDM1 is not symmetric"
 
 
 def test_rdm1_eigenvalues_in_range():
     """All eigenvalues (occupation numbers) must be in [0, 2]."""
-    ci_vector, alpha_strings, beta_strings, ncas, _, _, _ = (
-        _h2_ci_solution()
-    )
+    ci_vector, alpha_strings, beta_strings, ncas, _, _, _ = _h2_ci_solution()
     rdm1 = make_rdm1(ci_vector, alpha_strings, beta_strings, ncas)
     eigenvalues = np.linalg.eigvalsh(rdm1)
 
-    assert np.all(eigenvalues > -1e-10), (
-        f"Negative eigenvalue found: {eigenvalues}"
-    )
-    assert np.all(eigenvalues < 2.0 + 1e-10), (
-        f"Eigenvalue > 2 found: {eigenvalues}"
-    )
+    assert np.all(eigenvalues > -1e-10), f"Negative eigenvalue found: {eigenvalues}"
+    assert np.all(eigenvalues < 2.0 + 1e-10), f"Eigenvalue > 2 found: {eigenvalues}"
 
 
 def test_rdm1_matches_pyscf():
@@ -143,15 +129,7 @@ def test_rdm1_hf_state():
 
     rdm1 = make_rdm1(ci_vector, alpha_strings, beta_strings, ncas)
 
-    assert abs(rdm1[0, 0] - 2.0) < 1e-14, (
-        f"rdm1[0,0] = {rdm1[0, 0]}, expected 2.0"
-    )
-    assert abs(rdm1[1, 1] - 0.0) < 1e-14, (
-        f"rdm1[1,1] = {rdm1[1, 1]}, expected 0.0"
-    )
-    assert abs(rdm1[0, 1]) < 1e-14, (
-        f"rdm1[0,1] = {rdm1[0, 1]}, expected 0.0"
-    )
-    assert abs(rdm1[1, 0]) < 1e-14, (
-        f"rdm1[1,0] = {rdm1[1, 0]}, expected 0.0"
-    )
+    assert abs(rdm1[0, 0] - 2.0) < 1e-14, f"rdm1[0,0] = {rdm1[0, 0]}, expected 2.0"
+    assert abs(rdm1[1, 1] - 0.0) < 1e-14, f"rdm1[1,1] = {rdm1[1, 1]}, expected 0.0"
+    assert abs(rdm1[0, 1]) < 1e-14, f"rdm1[0,1] = {rdm1[0, 1]}, expected 0.0"
+    assert abs(rdm1[1, 0]) < 1e-14, f"rdm1[1,0] = {rdm1[1, 0]}, expected 0.0"

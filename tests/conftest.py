@@ -2,7 +2,7 @@
 
 import pytest
 
-from pyscf import gto, mcscf, scf
+from pyscf import ao2mo, fci, gto, mcscf, scf
 from pyscf.ormas_ci.fcisolver import ORMASFCISolver
 from pyscf.ormas_ci.subspaces import ORMASConfig, Subspace
 
@@ -54,3 +54,19 @@ def h2_ormas_solver(h2_rhf, h2_ormas_config):
     mc.fcisolver = ORMASFCISolver(h2_ormas_config)
     mc.kernel()
     return mc
+
+
+@pytest.fixture
+def h2_active_integrals(h2_rhf):
+    """Active-space integrals for H2 CAS(2,2).
+
+    Returns (h1e, h2e_4d, ecore, e_fci) where h2e_4d is the full
+    4-index ERI array and e_fci is PySCF's FCI ground-state energy.
+    """
+    mc = mcscf.CASCI(h2_rhf, 2, 2)
+    mc.verbose = 0
+    h1e, ecore = mc.get_h1eff()
+    h2e = mc.get_h2eff()
+    h2e = ao2mo.restore(1, h2e, 2)
+    e_fci, _ = fci.direct_spin1.kernel(h1e, h2e, 2, 2)
+    return h1e, h2e, ecore, e_fci

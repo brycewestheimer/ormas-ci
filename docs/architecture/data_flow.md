@@ -29,11 +29,21 @@ EXTERNAL FRAMEWORK                    OUR SOLVER
                                        +-> build_determinant_list(config)
                                        |   Returns: alpha_strings, beta_strings
                                        |
-                                       +-> build_ci_hamiltonian(strings, h1e, h2e)
-                                       |   Returns: H matrix (n_det x n_det)
+                                       +-> Solver path selection:
                                        |
-                                       +-> solve_ci(H, nroots)
-                                       |   Returns: energies, ci_vectors
+                                       |   n_det <= 200 (direct_ci_threshold)?
+                                       |   YES -> build_ci_hamiltonian() + eigh
+                                       |          (explicit dense Hamiltonian)
+                                       |
+                                       |   NO  -> unique strings/channel <= 300
+                                       |          (einsum_string_threshold)?
+                                       |          YES -> Davidson + SigmaEinsum
+                                       |                 (pure-Python iterative)
+                                       |          NO  -> PySCF selected_ci sigma
+                                       |                 + ARPACK eigsh
+                                       |                 (C-level fallback)
+                                       |
+                                       +-> Returns: energies, ci_vectors
                                        |
         +--- e_tot, ci_vector <--- 6. Return e_ci + ecore, ci_vec
         |

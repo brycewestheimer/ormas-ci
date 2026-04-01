@@ -14,9 +14,7 @@ __all__ = ["build_ci_hamiltonian"]
 
 
 # 16-bit popcount lookup table for vectorized excitation classification
-_POPCOUNT_TABLE_16 = np.array(
-    [bin(i).count("1") for i in range(65536)], dtype=np.int32
-)
+_POPCOUNT_TABLE_16 = np.array([bin(i).count("1") for i in range(65536)], dtype=np.int32)
 
 
 def _vectorized_popcount(arr: np.ndarray) -> np.ndarray:
@@ -119,18 +117,19 @@ def build_ci_hamiltonian(
     use_sparse = n_det > sparse_threshold
 
     # Precompute which pairs have <=2 excitations (non-zero by Slater-Condon)
-    pair_rows, pair_cols, _ = _precompute_excitation_pairs(
-        alpha_strings, beta_strings
-    )
+    pair_rows, pair_cols, _ = _precompute_excitation_pairs(alpha_strings, beta_strings)
 
     if use_sparse:
         rows, cols, vals = [], [], []
         for idx in range(len(pair_rows)):
             i, j = int(pair_rows[idx]), int(pair_cols[idx])
             val = matrix_element(
-                int(alpha_strings[i]), int(beta_strings[i]),
-                int(alpha_strings[j]), int(beta_strings[j]),
-                h1e, h2e,
+                int(alpha_strings[i]),
+                int(beta_strings[i]),
+                int(alpha_strings[j]),
+                int(beta_strings[j]),
+                h1e,
+                h2e,
             )
             if abs(val) > 1e-15:
                 rows.append(i)
@@ -151,9 +150,12 @@ def build_ci_hamiltonian(
         for idx in range(len(pair_rows)):
             i, j = int(pair_rows[idx]), int(pair_cols[idx])
             val = matrix_element(
-                int(alpha_strings[i]), int(beta_strings[i]),
-                int(alpha_strings[j]), int(beta_strings[j]),
-                h1e, h2e,
+                int(alpha_strings[i]),
+                int(beta_strings[i]),
+                int(alpha_strings[j]),
+                int(beta_strings[j]),
+                h1e,
+                h2e,
             )
             h_ci[i, j] = val
             h_ci[j, i] = val

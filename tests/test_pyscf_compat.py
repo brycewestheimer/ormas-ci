@@ -8,33 +8,26 @@ inheritance, and all required interface methods.
 import numpy as np
 import pytest
 
-from pyscf import ao2mo, gto, mcscf, scf
-from pyscf.ormas_ci import ORMASConfig, ORMASFCISolver, Subspace
+from pyscf import ao2mo, mcscf
+from pyscf.ormas_ci import ORMASFCISolver
 
 # ---------------------------------------------------------------------------
-# Fixtures
+# Fixtures (delegating to conftest for mol/mf/config)
 # ---------------------------------------------------------------------------
+
 
 @pytest.fixture()
-def h2_setup():
+def h2_setup(h2_mol, h2_rhf, h2_ormas_config):
     """H2/6-31G with unrestricted ORMAS config (single subspace)."""
-    mol = gto.M(atom='H 0 0 0; H 0 0 0.74', basis='6-31g', verbose=0)
-    mf = scf.RHF(mol).run()
-    config = ORMASConfig(
-        subspaces=[Subspace('all', [0, 1], min_electrons=0, max_electrons=4)],
-        n_active_orbitals=2,
-        nelecas=(1, 1),
-    )
-    return mol, mf, config
+    return h2_mol, h2_rhf, h2_ormas_config
 
 
 @pytest.fixture()
-def h2_solver_and_integrals(h2_setup):
+def h2_solver_and_integrals(h2_rhf, h2_ormas_config):
     """Return solver after kernel() with active-space integrals."""
-    mol, mf, config = h2_setup
-    mc = mcscf.CASCI(mf, 2, 2)
+    mc = mcscf.CASCI(h2_rhf, 2, 2)
     mc.verbose = 0
-    solver = ORMASFCISolver(config)
+    solver = ORMASFCISolver(h2_ormas_config)
     mc.fcisolver = solver
     mc.kernel()
     h1e, ecore = mc.get_h1eff()
@@ -46,11 +39,12 @@ def h2_solver_and_integrals(h2_setup):
 # StreamObject inheritance
 # ---------------------------------------------------------------------------
 
+
 class TestStreamObjectInheritance:
     def test_has_copy(self, h2_setup):
         _, _, config = h2_setup
         solver = ORMASFCISolver(config)
-        assert hasattr(solver, 'copy')
+        assert hasattr(solver, "copy")
         assert callable(solver.copy)
 
     def test_copy_returns_new_object(self, h2_setup):
@@ -65,23 +59,24 @@ class TestStreamObjectInheritance:
     def test_has_stdout(self, h2_setup):
         _, _, config = h2_setup
         solver = ORMASFCISolver(config)
-        assert hasattr(solver, 'stdout')
+        assert hasattr(solver, "stdout")
 
     def test_has_max_memory(self, h2_setup):
         _, _, config = h2_setup
         solver = ORMASFCISolver(config)
-        assert hasattr(solver, 'max_memory')
+        assert hasattr(solver, "max_memory")
         assert solver.max_memory > 0
 
     def test_has_verbose(self, h2_setup):
         _, _, config = h2_setup
         solver = ORMASFCISolver(config)
-        assert hasattr(solver, 'verbose')
+        assert hasattr(solver, "verbose")
 
 
 # ---------------------------------------------------------------------------
 # State variables after kernel()
 # ---------------------------------------------------------------------------
+
 
 class TestKernelStateVariables:
     def test_sets_eci(self, h2_setup):
@@ -128,6 +123,7 @@ class TestKernelStateVariables:
 # make_hdiag
 # ---------------------------------------------------------------------------
 
+
 class TestMakeHdiag:
     def test_matches_hamiltonian_diagonal(self, h2_solver_and_integrals):
         solver, h1e, eri, ecore = h2_solver_and_integrals
@@ -135,10 +131,9 @@ class TestMakeHdiag:
         hdiag = solver.make_hdiag(h1e, eri_4d, 2, (1, 1))
 
         from pyscf.ormas_ci.hamiltonian import build_ci_hamiltonian
-        h_ci = build_ci_hamiltonian(
-            solver._alpha_strings, solver._beta_strings, h1e, eri_4d
-        )
-        if hasattr(h_ci, 'toarray'):
+
+        h_ci = build_ci_hamiltonian(solver._alpha_strings, solver._beta_strings, h1e, eri_4d)
+        if hasattr(h_ci, "toarray"):
             h_ci = h_ci.toarray()
         expected = np.diag(h_ci)
         np.testing.assert_allclose(hdiag, expected, atol=1e-12)
@@ -153,6 +148,7 @@ class TestMakeHdiag:
 # ---------------------------------------------------------------------------
 # pspace
 # ---------------------------------------------------------------------------
+
 
 class TestPspace:
     def test_returns_subblock_and_addresses(self, h2_solver_and_integrals):
@@ -174,6 +170,7 @@ class TestPspace:
 # ---------------------------------------------------------------------------
 # get_init_guess
 # ---------------------------------------------------------------------------
+
 
 class TestGetInitGuess:
     def test_returns_unit_vectors(self, h2_solver_and_integrals):
@@ -199,6 +196,7 @@ class TestGetInitGuess:
 # contract_1e
 # ---------------------------------------------------------------------------
 
+
 class TestContract1e:
     def test_matches_1e_hamiltonian(self, h2_solver_and_integrals):
         solver, h1e, eri, _ = h2_solver_and_integrals
@@ -206,11 +204,10 @@ class TestContract1e:
         sigma = solver.contract_1e(h1e, ci, 2, (1, 1))
         # Build 1e-only Hamiltonian for reference
         from pyscf.ormas_ci.hamiltonian import build_ci_hamiltonian
+
         h2e_zero = np.zeros((2, 2, 2, 2))
-        h1_only = build_ci_hamiltonian(
-            solver._alpha_strings, solver._beta_strings, h1e, h2e_zero
-        )
-        if hasattr(h1_only, 'toarray'):
+        h1_only = build_ci_hamiltonian(solver._alpha_strings, solver._beta_strings, h1e, h2e_zero)
+        if hasattr(h1_only, "toarray"):
             h1_only = h1_only.toarray()
         expected = h1_only @ ci
         np.testing.assert_allclose(sigma, expected, atol=1e-12)
@@ -219,6 +216,7 @@ class TestContract1e:
 # ---------------------------------------------------------------------------
 # contract_ss
 # ---------------------------------------------------------------------------
+
 
 class TestContractSs:
     def test_singlet_eigenvalue(self, h2_solver_and_integrals):
@@ -243,10 +241,12 @@ class TestContractSs:
 # fix_spin_ addon
 # ---------------------------------------------------------------------------
 
+
 class TestFixSpin:
     def test_fix_spin_does_not_crash(self, h2_setup):
         _, _, config = h2_setup
         from pyscf.fci.addons import fix_spin_
+
         solver = ORMASFCISolver(config)
         fix_spin_(solver, shift=0.1)
 
@@ -273,6 +273,7 @@ class TestFixSpin:
 # ---------------------------------------------------------------------------
 # Hamiltonian caching
 # ---------------------------------------------------------------------------
+
 
 class TestHamiltonianCache:
     def test_contract_2e_uses_cache(self, h2_solver_and_integrals):
