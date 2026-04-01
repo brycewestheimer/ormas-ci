@@ -93,7 +93,7 @@ from pyscf import gto, scf, mcscf
 from pyscf.ormas_ci import SFORMASFCISolver, SFORMASConfig, Subspace
 
 # Stretched H2 with triplet reference
-mol = gto.M(atom='H 0 0 0; H 0 0 2.0', basis='sto-3g', spin=2)
+mol = gto.M(atom='H 0 0 0; H 0 0 2.0', basis='6-31g', spin=2)
 mf = scf.ROHF(mol).run()
 
 sf_config = SFORMASConfig(

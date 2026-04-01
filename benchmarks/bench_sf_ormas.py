@@ -38,8 +38,8 @@ class SFBenchmarkResult:
 
 
 def _bench_h2() -> SFBenchmarkResult:
-    """H2 stretched, STO-3G, CAS(2,2), single SF."""
-    mol = gto.M(atom="H 0 0 0; H 0 0 2.0", basis="sto-3g", spin=2, verbose=0)
+    """H2 stretched, 6-31G, CAS(2,2), single SF."""
+    mol = gto.M(atom="H 0 0 0; H 0 0 2.0", basis="6-31g", spin=2, verbose=0)
     mf = scf.ROHF(mol)
     mf.verbose = 0
     mf.run()
@@ -81,7 +81,7 @@ def _bench_h2() -> SFBenchmarkResult:
 
 
 def _bench_ethylene() -> SFBenchmarkResult:
-    """Twisted ethylene, STO-3G, CAS(2,2), single SF."""
+    """Twisted ethylene, 6-31G, CAS(2,2), single SF."""
     mol = gto.M(
         atom="""
         C  0.000  0.000  0.000
@@ -91,7 +91,7 @@ def _bench_ethylene() -> SFBenchmarkResult:
         H  1.840  0.000  0.930
         H  1.840  0.000 -0.930
         """,
-        basis="sto-3g", spin=2, verbose=0,
+        basis="6-31g", spin=2, verbose=0,
     )
     mf = scf.ROHF(mol)
     mf.verbose = 0
@@ -132,7 +132,7 @@ def _bench_ethylene() -> SFBenchmarkResult:
 
 
 def _bench_tmm() -> SFBenchmarkResult:
-    """TMM, STO-3G, CAS(4,4), single SF from triplet."""
+    """TMM, 6-31G, CAS(4,4), single SF from triplet."""
     mol = gto.M(
         atom="""
         C  0.000  0.000  0.000
@@ -146,7 +146,7 @@ def _bench_tmm() -> SFBenchmarkResult:
         H -1.269 -2.099  0.000
         H -0.081 -2.099  0.000
         """,
-        basis="sto-3g", spin=2, verbose=0,
+        basis="6-31g", spin=2, verbose=0,
     )
     mf = scf.ROHF(mol)
     mf.verbose = 0
@@ -187,8 +187,8 @@ def _bench_tmm() -> SFBenchmarkResult:
 
 
 def _bench_n2() -> SFBenchmarkResult:
-    """N2 stretched, STO-3G, CAS(6,6), single SF with ORMAS restriction."""
-    mol = gto.M(atom="N 0 0 0; N 0 0 2.0", basis="sto-3g", spin=2, verbose=0)
+    """N2 stretched, 6-31G, CAS(6,6), single SF with ORMAS restriction."""
+    mol = gto.M(atom="N 0 0 0; N 0 0 2.0", basis="6-31g", spin=2, verbose=0)
     mf = scf.ROHF(mol)
     mf.verbose = 0
     mf.run()

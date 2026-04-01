@@ -15,7 +15,7 @@ from pyscf.ormas_ci import SFORMASConfig, SFORMASFCISolver, Subspace
 
 def test_sf_ormas_matches_casci_h2():
     """SF-ORMAS with full CAS bounds must match PySCF CASCI (H2 stretched)."""
-    mol = gto.M(atom="H 0 0 0; H 0 0 2.0", basis="sto-3g", spin=2, verbose=0)
+    mol = gto.M(atom="H 0 0 0; H 0 0 2.0", basis="6-31g", spin=2, verbose=0)
     mf = scf.ROHF(mol)
     mf.verbose = 0
     mf.run()
@@ -44,7 +44,7 @@ def test_sf_ormas_matches_casci_h2():
 
 def test_sf_ormas_matches_casci_h2_equilibrium():
     """SF-ORMAS matches PySCF CASCI at H2 equilibrium geometry."""
-    mol = gto.M(atom="H 0 0 0; H 0 0 0.74", basis="sto-3g", spin=2, verbose=0)
+    mol = gto.M(atom="H 0 0 0; H 0 0 0.74", basis="6-31g", spin=2, verbose=0)
     mf = scf.ROHF(mol)
     mf.verbose = 0
     mf.run()
@@ -73,7 +73,7 @@ def test_sf_ormas_matches_casci_h2_equilibrium():
 
 def test_sf_ormas_nelecas_mismatch_raises():
     """CASCI with wrong nelecas must raise ValueError."""
-    mol = gto.M(atom="H 0 0 0; H 0 0 2.0", basis="sto-3g", spin=2, verbose=0)
+    mol = gto.M(atom="H 0 0 0; H 0 0 2.0", basis="6-31g", spin=2, verbose=0)
     mf = scf.ROHF(mol)
     mf.verbose = 0
     mf.run()
@@ -95,7 +95,7 @@ def test_sf_ormas_nelecas_mismatch_raises():
 
 def test_sf_ormas_spin_pure_h2():
     """H2 CAS(2,2) nroots=2: each root must be a spin eigenstate."""
-    mol = gto.M(atom="H 0 0 0; H 0 0 2.0", basis="sto-3g", spin=2, verbose=0)
+    mol = gto.M(atom="H 0 0 0; H 0 0 2.0", basis="6-31g", spin=2, verbose=0)
     mf = scf.ROHF(mol)
     mf.verbose = 0
     mf.run()
@@ -129,7 +129,7 @@ def test_sf_ormas_spin_pure_larger():
     """4-electron/4-orbital SF: verify spin purity across multiple roots."""
     mol = gto.M(
         atom="H 0 0 0; H 0 0 2.0; H 0 0 4.0; H 0 0 6.0",
-        basis="sto-3g",
+        basis="6-31g",
         spin=2,
         verbose=0,
     )
@@ -159,7 +159,7 @@ def test_sf_ormas_spin_pure_larger():
 
 def test_sf_ormas_multiroot_energy_ordering():
     """H2 stretched, nroots=2: E[0] <= E[1]."""
-    mol = gto.M(atom="H 0 0 0; H 0 0 2.0", basis="sto-3g", spin=2, verbose=0)
+    mol = gto.M(atom="H 0 0 0; H 0 0 2.0", basis="6-31g", spin=2, verbose=0)
     mf = scf.ROHF(mol)
     mf.verbose = 0
     mf.run()
@@ -183,7 +183,7 @@ def test_sf_ormas_multiroot_energy_ordering():
 
 def test_sf_ormas_casscf():
     """SF-ORMAS with CASSCF orbital optimization on H2."""
-    mol = gto.M(atom="H 0 0 0; H 0 0 2.0", basis="sto-3g", spin=2, verbose=0)
+    mol = gto.M(atom="H 0 0 0; H 0 0 2.0", basis="6-31g", spin=2, verbose=0)
     mf = scf.ROHF(mol)
     mf.verbose = 0
     mf.run()

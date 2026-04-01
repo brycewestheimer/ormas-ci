@@ -22,12 +22,12 @@ from pyscf.ormas_ci.subspaces import ORMASConfig, Subspace
 # ------------------------------------------------------------------ #
 
 def _h2_setup():
-    """H2 / STO-3G, CAS(2,2), (1a, 1b).
+    """H2 / 6-31G, CAS(2,2), (1a, 1b).
 
     Returns (mf, ncas, nelecas, config).
     """
     mol = gto.M(
-        atom="H 0 0 0; H 0 0 0.74", basis="sto-3g", verbose=0
+        atom="H 0 0 0; H 0 0 0.74", basis="6-31g", verbose=0
     )
     mf = scf.RHF(mol)
     mf.verbose = 0
@@ -64,13 +64,13 @@ def _h2o_setup():
 
 
 def _ch2_triplet_setup():
-    """CH2 triplet / STO-3G, CAS(6,6), (4a, 2b), ROHF, spin=2.
+    """CH2 triplet / 6-31G, CAS(6,6), (4a, 2b), ROHF, spin=2.
 
     Returns (mf, ncas, nelecas, config).
     """
     mol = gto.M(
         atom="C 0 0 0; H 0 0.935 0.535; H 0 -0.935 0.535",
-        basis="sto-3g",
+        basis="6-31g",
         spin=2,
         verbose=0,
     )
@@ -168,7 +168,7 @@ def test_rdm2_trace():
 # ------------------------------------------------------------------ #
 
 def test_rdm2_energy_h2():
-    """Energy from RDMs must match kernel energy for H2/STO-3G."""
+    """Energy from RDMs must match kernel energy for H2/6-31G."""
     mf, ncas, nelecas, config = _h2_setup()
     mc = _run_casci(mf, ncas, nelecas, config)
     e_kernel = mc.e_tot
@@ -304,7 +304,7 @@ def test_rdm2_restricted_ormas():
     """RDM energy consistency with a 2-subspace restriction on H2O."""
     mol = gto.M(
         atom="O 0 0 0; H 0 0.757 0.587; H 0 -0.757 0.587",
-        basis="sto-3g",
+        basis="6-31g",
         verbose=0,
     )
     mf = scf.RHF(mol)
@@ -498,9 +498,9 @@ def test_dump_flags_no_error():
 # ------------------------------------------------------------------ #
 
 def test_casscf_h2_runs():
-    """CASSCF must complete on H2/STO-3G with our solver."""
+    """CASSCF must complete on H2/6-31G with our solver."""
     mol = gto.M(
-        atom="H 0 0 0; H 0 0 0.74", basis="sto-3g", verbose=0
+        atom="H 0 0 0; H 0 0 0.74", basis="6-31g", verbose=0
     )
     mf = scf.RHF(mol)
     mf.verbose = 0
@@ -521,10 +521,10 @@ def test_casscf_h2_runs():
 
 
 def test_casscf_h2o_runs():
-    """CASSCF must complete on H2O/STO-3G with our solver."""
+    """CASSCF must complete on H2O/6-31G with our solver."""
     mol = gto.M(
         atom="O 0 0 0; H 0 0.757 0.587; H 0 -0.757 0.587",
-        basis="sto-3g",
+        basis="6-31g",
         verbose=0,
     )
     mf = scf.RHF(mol)
@@ -550,7 +550,7 @@ def test_casscf_h2o_runs():
 def test_casscf_energy_leq_casci():
     """CASSCF energy must be <= CASCI energy (orbital optimization)."""
     mol = gto.M(
-        atom="H 0 0 0; H 0 0 0.74", basis="sto-3g", verbose=0
+        atom="H 0 0 0; H 0 0 0.74", basis="6-31g", verbose=0
     )
     mf = scf.RHF(mol)
     mf.verbose = 0

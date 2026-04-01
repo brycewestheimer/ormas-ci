@@ -17,8 +17,8 @@ from pyscf.ormas_ci import ORMASConfig, ORMASFCISolver, Subspace
 
 @pytest.fixture()
 def h2_setup():
-    """H2/STO-3G with unrestricted ORMAS config (single subspace)."""
-    mol = gto.M(atom='H 0 0 0; H 0 0 0.74', basis='sto-3g', verbose=0)
+    """H2/6-31G with unrestricted ORMAS config (single subspace)."""
+    mol = gto.M(atom='H 0 0 0; H 0 0 0.74', basis='6-31g', verbose=0)
     mf = scf.RHF(mol).run()
     config = ORMASConfig(
         subspaces=[Subspace('all', [0, 1], min_electrons=0, max_electrons=4)],

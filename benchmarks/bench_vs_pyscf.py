@@ -230,9 +230,9 @@ def _run_ormas(mf, ncas, nelecas, config, method_name, n_repeats):
 
 BENCHMARK_CASES = {
     "h2": BenchmarkCase(
-        name="H2/STO-3G",
+        name="H2/6-31G",
         atom="H 0 0 0; H 0 0 0.74",
-        basis="sto-3g",
+        basis="6-31g",
         ncas=2,
         nelecas=(1, 1),
         ras_config=None,  # Too small for meaningful RAS
@@ -263,9 +263,9 @@ BENCHMARK_CASES = {
         ),
     ),
     "n2_sto": BenchmarkCase(
-        name="N2/STO-3G",
+        name="N2/6-31G",
         atom="N 0 0 0; N 0 0 1.09",
-        basis="sto-3g",
+        basis="6-31g",
         ncas=6,
         nelecas=(3, 3),
         # Allow up to 2 holes/particles for better energy recovery
@@ -515,7 +515,7 @@ def _run_qdk_benchmarks(
     print("  QDK/Chemistry Integration Benchmarks")
     print(f"{'='*70}")
 
-    # ---------- H2O / STO-3G via QDK pipeline ----------
+    # ---------- H2O / 6-31G via QDK pipeline ----------
     print("\n  Setting up H2O via QDK/Chemistry SCF pipeline...")
     xyz_str = (
         "3\nWater\n"
@@ -525,7 +525,7 @@ def _run_qdk_benchmarks(
     )
     structure = Structure.from_xyz(xyz_str)
     scf_solver = PyscfScfSolver()
-    _scf_energy, wfn = scf_solver.run(structure, 0, 1, "sto-3g")
+    _scf_energy, wfn = scf_solver.run(structure, 0, 1, "6-31g")
 
     container = wfn.get_container()
     orbitals = container.get_orbitals()
@@ -537,7 +537,7 @@ def _run_qdk_benchmarks(
 
     ncas = 4
     nelecas = (2, 2)
-    system_name = "H2O/STO-3G (QDK)"
+    system_name = "H2O/6-31G (QDK)"
 
     # 1. QDK -> PySCF CASCI (native FCI)
     print("  Running QDK -> PySCF CASCI (native FCI)...", end=" ", flush=True)

@@ -14,7 +14,7 @@ from pyscf.ormas_ci import ORMASConfig, ORMASFCISolver, Subspace
 # H2O with a small basis for fast CASSCF convergence
 mol = gto.M(
     atom="O 0 0 0; H 0 0.757 0.587; H 0 -0.757 0.587",
-    basis="STO-3G",
+    basis="6-31G",
     verbose=0,
 )
 mf = scf.RHF(mol)
@@ -45,7 +45,7 @@ mc_ormas.fcisolver = ORMASFCISolver(config)
 e_ormas = mc_ormas.kernel()[0]
 
 # Results
-print("CASSCF Orbital Optimization: H2O/STO-3G CAS(4,4)")
+print("CASSCF Orbital Optimization: H2O/6-31G CAS(4,4)")
 print("=" * 55)
 print(f"Reference CASSCF (PySCF FCI):  {e_ref:.10f} Ha")
 print(f"CASSCF + ORMASFCISolver:       {e_ormas:.10f} Ha")

@@ -19,7 +19,7 @@ mol = gto.M(
     H  1.840  0.000  0.930
     H  1.840  0.000 -0.930
     """,
-    basis="sto-3g",
+    basis="6-31g",
     spin=2,
     verbose=0,
 )
@@ -53,7 +53,7 @@ mc_sf.kernel()
 e_sf = mc_sf.e_tot
 
 # --- Analyze spin for each SF-ORMAS root ---
-print("SF-ORMAS Twisted Ethylene (90-degree, STO-3G)")
+print("SF-ORMAS Twisted Ethylene (90-degree, 6-31G)")
 print("=" * 70)
 print()
 print("SF-ORMAS roots:")

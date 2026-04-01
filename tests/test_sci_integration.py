@@ -17,9 +17,9 @@ from pyscf.ormas_ci import ORMASConfig, ORMASFCISolver, Subspace
 # ---------- fixtures ----------
 
 @pytest.fixture(scope="module")
-def n2_sto3g_mf():
-    """N2/STO-3G RHF — CAS(6,6) gives 400 determinants."""
-    mol = gto.M(atom="N 0 0 0; N 0 0 1.1", basis="sto3g", verbose=0)
+def n2_mf():
+    """N2/6-31G RHF — CAS(6,6) gives 400 determinants."""
+    mol = gto.M(atom="N 0 0 0; N 0 0 1.1", basis="6-31g", verbose=0)
     return scf.RHF(mol).run()
 
 
@@ -50,12 +50,12 @@ class TestSCIvsExplicitSingleRoot:
     """Compare SCI and explicit paths for ground-state properties."""
 
     @pytest.fixture(autouse=True)
-    def setup(self, n2_sto3g_mf, n2_cas66_config):
+    def setup(self, n2_mf, n2_cas66_config):
         self.mc_sci = _run_solver(
-            n2_sto3g_mf, n2_cas66_config, 6, 6, threshold=50,
+            n2_mf, n2_cas66_config, 6, 6, threshold=50,
         )
         self.mc_explicit = _run_solver(
-            n2_sto3g_mf, n2_cas66_config, 6, 6, threshold=999999,
+            n2_mf, n2_cas66_config, 6, 6, threshold=999999,
         )
         # Verify the two paths are actually different
         assert self.mc_sci.fcisolver._use_sci
@@ -139,13 +139,13 @@ class TestSCIvsExplicitMultiRoot:
     """
 
     @pytest.fixture(autouse=True)
-    def setup(self, n2_sto3g_mf, n2_cas66_config):
+    def setup(self, n2_mf, n2_cas66_config):
         self.mc_sci = _run_solver(
-            n2_sto3g_mf, n2_cas66_config, 6, 6,
+            n2_mf, n2_cas66_config, 6, 6,
             threshold=50, nroots=3,
         )
         self.mc_explicit = _run_solver(
-            n2_sto3g_mf, n2_cas66_config, 6, 6,
+            n2_mf, n2_cas66_config, 6, 6,
             threshold=999999, nroots=3,
         )
 
@@ -172,7 +172,7 @@ class TestSCIvsExplicitMultiRoot:
 class TestSCIEdgeCases:
     """Edge cases for the SCI path."""
 
-    def test_nroots_ge_ndet_falls_back(self, n2_sto3g_mf):
+    def test_nroots_ge_ndet_falls_back(self, n2_mf):
         """When nroots >= n_det, SCI path falls back to explicit H."""
         config = ORMASConfig(
             subspaces=[
@@ -183,7 +183,7 @@ class TestSCIEdgeCases:
             nelecas=(2, 2),
         )
         # This config gives a small number of determinants
-        mc = mcscf.CASCI(n2_sto3g_mf, 4, 4)
+        mc = mcscf.CASCI(n2_mf, 4, 4)
         mc.verbose = 0
         mc.fcisolver = ORMASFCISolver(config)
         mc.fcisolver.direct_ci_threshold = 1  # Force SCI path attempt
@@ -193,14 +193,14 @@ class TestSCIEdgeCases:
         # Should not crash — falls back to explicit H for full diag
         assert mc.fcisolver.converged
 
-    def test_small_system_sci_path(self, n2_sto3g_mf):
+    def test_small_system_sci_path(self, n2_mf):
         """Very small system forced through SCI path still works."""
         config = ORMASConfig(
             subspaces=[Subspace("full", [0, 1], 0, 4)],
             n_active_orbitals=2,
             nelecas=(1, 1),
         )
-        mc = mcscf.CASCI(n2_sto3g_mf, 2, 2)
+        mc = mcscf.CASCI(n2_mf, 2, 2)
         mc.verbose = 0
         mc.fcisolver = ORMASFCISolver(config)
         mc.fcisolver.direct_ci_threshold = 1  # Force SCI
@@ -208,14 +208,14 @@ class TestSCIEdgeCases:
         assert mc.fcisolver.converged
         assert mc.fcisolver._use_sci
 
-    def test_python_fallback_rdm_matches_sci(self, n2_sto3g_mf):
+    def test_python_fallback_rdm_matches_sci(self, n2_mf):
         """Python RDM path (SCI disabled) matches SCI RDM path."""
         config = ORMASConfig(
             subspaces=[Subspace("full", list(range(6)), 0, 12)],
             n_active_orbitals=6,
             nelecas=(3, 3),
         )
-        mc = mcscf.CASCI(n2_sto3g_mf, 6, 6)
+        mc = mcscf.CASCI(n2_mf, 6, 6)
         mc.verbose = 0
         mc.fcisolver = ORMASFCISolver(config)
         mc.kernel()
@@ -265,10 +265,10 @@ class TestSCIEdgeCases:
         assert abs(mult_sci - mult_py) < 1e-10
         assert np.allclose(hdiag_sci, hdiag_py, atol=1e-10)
 
-    def test_ormas_restricted_sci_matches_pyscf(self, n2_sto3g_mf):
+    def test_ormas_restricted_sci_matches_pyscf(self, n2_mf):
         """ORMAS-restricted space via SCI gives variational energy."""
         # Full CAS reference
-        mc_ref = mcscf.CASCI(n2_sto3g_mf, 6, 6)
+        mc_ref = mcscf.CASCI(n2_mf, 6, 6)
         mc_ref.verbose = 0
         mc_ref.kernel()
 
@@ -281,7 +281,7 @@ class TestSCIEdgeCases:
             n_active_orbitals=6,
             nelecas=(3, 3),
         )
-        mc = mcscf.CASCI(n2_sto3g_mf, 6, 6)
+        mc = mcscf.CASCI(n2_mf, 6, 6)
         mc.verbose = 0
         mc.fcisolver = ORMASFCISolver(config)
         mc.kernel()

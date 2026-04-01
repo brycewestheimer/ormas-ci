@@ -40,7 +40,7 @@ xyz_str = (
 )
 structure = Structure.from_xyz(xyz_str)
 scf_solver = PyscfScfSolver()
-scf_energy, wfn = scf_solver.run(structure, 0, 1, "sto-3g")
+scf_energy, wfn = scf_solver.run(structure, 0, 1, "6-31g")
 
 # --- Step 2: Convert QDK orbitals to PySCF SCF object ---
 container = wfn.get_container()
@@ -95,7 +95,7 @@ e_qubit = e_qubit_raw + hamiltonian.get_core_energy()
 n_det_casci = casci_determinant_count(ncas, nelecas)
 n_det_ormas = count_determinants(config)
 
-print("QDK Pipeline: H2O/STO-3G CAS(4,4)")
+print("QDK Pipeline: H2O/6-31G CAS(4,4)")
 print("=" * 60)
 print()
 print("Classical comparison:")

@@ -19,14 +19,14 @@ for d in distances:
     atom = f"H 0 0 0; H 0 0 {d}"
 
     # --- RHF (singlet) ---
-    mol_rhf = gto.M(atom=atom, basis="sto-3g", verbose=0)
+    mol_rhf = gto.M(atom=atom, basis="6-31g", verbose=0)
     mf_rhf = scf.RHF(mol_rhf)
     mf_rhf.verbose = 0
     mf_rhf.run()
     e_rhf = mf_rhf.e_tot
 
     # --- ROHF (triplet reference for SF and CASCI) ---
-    mol_trip = gto.M(atom=atom, basis="sto-3g", spin=2, verbose=0)
+    mol_trip = gto.M(atom=atom, basis="6-31g", spin=2, verbose=0)
     mf_rohf = scf.ROHF(mol_trip)
     mf_rohf.verbose = 0
     mf_rohf.run()
@@ -54,7 +54,7 @@ for d in distances:
     results.append({"d": d, "rhf": e_rhf, "casci": e_casci, "sf": e_sf, "diff": diff_mh})
 
 # --- Print results ---
-print("SF-ORMAS H2 Dissociation Curve (STO-3G)")
+print("SF-ORMAS H2 Dissociation Curve (6-31G)")
 print("=" * 75)
 print(f"{'R (A)':>7}  {'E(RHF)':>14}  {'E(CASCI)':>14}  {'E(SF-ORMAS)':>14}  {'diff (mHa)':>10}")
 print("-" * 75)

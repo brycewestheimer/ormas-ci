@@ -26,9 +26,9 @@ from pyscf.ormas_ci.subspaces import ORMASConfig, Subspace
 
 
 def _h2_setup():
-    """H2 STO-3G, CAS(2,2)."""
+    """H2 6-31G, CAS(2,2)."""
     mol = gto.M(
-        atom="H 0 0 0; H 0 0 0.74", basis="sto-3g", verbose=0
+        atom="H 0 0 0; H 0 0 0.74", basis="6-31g", verbose=0
     )
     mf = scf.RHF(mol)
     mf.verbose = 0
@@ -37,9 +37,9 @@ def _h2_setup():
 
 
 def _lih_setup():
-    """LiH STO-3G, CAS(4,4)."""
+    """LiH 6-31G, CAS(4,4)."""
     mol = gto.M(
-        atom="Li 0 0 0; H 0 0 1.6", basis="sto-3g", verbose=0
+        atom="Li 0 0 0; H 0 0 1.6", basis="6-31g", verbose=0
     )
     mf = scf.RHF(mol)
     mf.verbose = 0
@@ -48,10 +48,10 @@ def _lih_setup():
 
 
 def _ch2_triplet_setup():
-    """CH2 triplet STO-3G with ROHF, CAS(6, (4,2))."""
+    """CH2 triplet 6-31G with ROHF, CAS(6, (4,2))."""
     mol = gto.M(
         atom="C 0 0 0; H 0 0.93 0.54; H 0 -0.93 0.54",
-        basis="sto-3g",
+        basis="6-31g",
         spin=2,
         verbose=0,
     )
@@ -62,15 +62,15 @@ def _ch2_triplet_setup():
 
 
 def _o2_triplet_setup():
-    """O2 triplet STO-3G with ROHF, CAS(4, (3,1)).
+    """O2 triplet 6-31G with ROHF, CAS(4, (3,1)).
 
-    O2/STO-3G has 10 MOs and 16 electrons.  With spin=2 the alpha/beta
+    O2/6-31G has 10 MOs and 16 electrons.  With spin=2 the alpha/beta
     counts are (9, 7).  CAS(4, (3,1)) keeps ncore=6 and nvir=0, which
     is the largest feasible active space in this basis.
     """
     mol = gto.M(
         atom="O 0 0 0; O 0 0 1.21",
-        basis="sto-3g",
+        basis="6-31g",
         spin=2,
         verbose=0,
     )
@@ -81,10 +81,10 @@ def _o2_triplet_setup():
 
 
 def _beh2_setup():
-    """BeH2 STO-3G, CAS(6,6)."""
+    """BeH2 6-31G, CAS(6,6)."""
     mol = gto.M(
         atom="Be 0 0 0; H 0 0 1.3; H 0 0 -1.3",
-        basis="sto-3g",
+        basis="6-31g",
         verbose=0,
     )
     mf = scf.RHF(mol)
@@ -94,9 +94,9 @@ def _beh2_setup():
 
 
 def _n2_setup():
-    """N2 STO-3G, CAS(6,6)."""
+    """N2 6-31G, CAS(6,6)."""
     mol = gto.M(
-        atom="N 0 0 0; N 0 0 1.09", basis="sto-3g", verbose=0
+        atom="N 0 0 0; N 0 0 1.09", basis="6-31g", verbose=0
     )
     mf = scf.RHF(mol)
     mf.verbose = 0

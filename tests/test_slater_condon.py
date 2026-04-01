@@ -1,7 +1,7 @@
 """Tests for ormas_ci.slater_condon -- Slater-Condon matrix element evaluation.
 
 The critical test is test_h2_full_hamiltonian_matches_pyscf, which builds the
-full CI Hamiltonian for H2/STO-3G using matrix_element() and verifies that
+full CI Hamiltonian for H2/6-31G using matrix_element() and verifies that
 eigenvalues match PySCF's FCI solver.
 """
 
@@ -13,12 +13,12 @@ from pyscf.ormas_ci.utils import generate_strings
 
 
 def _get_h2_integrals():
-    """Get H2/STO-3G active space integrals from PySCF.
+    """Get H2/6-31G active space integrals from PySCF.
 
     Returns:
         (h1e, h2e, ecore, e_fci) where e_fci is the PySCF FCI ground state energy.
     """
-    mol = gto.M(atom="H 0 0 0; H 0 0 0.74", basis="sto-3g", verbose=0)
+    mol = gto.M(atom="H 0 0 0; H 0 0 0.74", basis="6-31g", verbose=0)
     mf = scf.RHF(mol)
     mf.verbose = 0
     mf.run()
@@ -111,7 +111,7 @@ def test_diagonal_elements_real():
 
 
 def test_h2_eigenvalue_count():
-    """H2/STO-3G in (2,2) space has exactly 4 determinants and 4 eigenvalues."""
+    """H2/6-31G in (2,2) space has exactly 4 determinants and 4 eigenvalues."""
     h1e, h2e, _, _ = _get_h2_integrals()
     h_mat, det_list = _build_h2_hamiltonian(h1e, h2e)
 

@@ -57,7 +57,7 @@ from pyscf.ormas_ci import ORMASFCISolver, ORMASConfig, Subspace
 xyz_str = "2\nH2\nH  0.0  0.0  0.0\nH  0.0  0.0  0.74"
 structure = Structure.from_xyz(xyz_str)
 scf_solver = PyscfScfSolver()
-scf_energy, wfn = scf_solver.run(structure, 0, 1, "sto-3g")
+scf_energy, wfn = scf_solver.run(structure, 0, 1, "6-31g")
 
 # 2. Convert QDK orbitals to PySCF SCF object
 orbitals = wfn.get_container().get_orbitals()

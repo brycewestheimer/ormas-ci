@@ -27,7 +27,7 @@ from pyscf.ormas_ci import ORMASFCISolver, ORMASConfig, Subspace
 # Set up the molecule
 mol = gto.M(
     atom='O 0 0 0; H 0 0.757 0.587; H 0 -0.757 0.587',
-    basis='sto-3g',
+    basis='6-31g',
 )
 mf = scf.RHF(mol).run()
 
@@ -94,7 +94,7 @@ reach the target multiplicity:
 from pyscf import gto, scf, mcscf
 from pyscf.ormas_ci import SFORMASFCISolver, SFORMASConfig, Subspace
 
-mol = gto.M(atom='H 0 0 0; H 0 0 2.0', basis='sto-3g', spin=2, verbose=0)
+mol = gto.M(atom='H 0 0 0; H 0 0 2.0', basis='6-31g', spin=2, verbose=0)
 mf = scf.ROHF(mol)
 mf.verbose = 0
 mf.run()

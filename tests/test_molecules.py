@@ -27,7 +27,7 @@ def test_h2_dissociation():
     for r in bond_lengths:
         mol = gto.M(
             atom=f"H 0 0 0; H 0 0 {r}",
-            basis="sto-3g",
+            basis="6-31g",
             verbose=0,
         )
         mf = scf.RHF(mol)
@@ -69,14 +69,14 @@ def test_h2_dissociation():
 
 
 def test_n2_ras():
-    """RASCI on N2/STO-3G with sigma/pi separation.
+    """RASCI on N2/6-31G with sigma/pi separation.
 
     Uses RASConfig with max_holes=1, max_particles=1 to define a
     restricted active space. Verifies:
     1. Energy is above (or equal to) full CASCI (variational bound).
     2. Determinant count is reduced relative to CASCI.
     """
-    mol = gto.M(atom="N 0 0 0; N 0 0 1.09", basis="sto-3g", verbose=0)
+    mol = gto.M(atom="N 0 0 0; N 0 0 1.09", basis="6-31g", verbose=0)
     mf = scf.RHF(mol)
     mf.verbose = 0
     mf.run()

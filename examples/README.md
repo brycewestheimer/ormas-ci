@@ -21,14 +21,14 @@ pip install pyscf-ormas-ci[qdk]
 |---|--------|--------|---------------------|
 | 01 | `01_basic_ormas.py` | H2O/cc-pVDZ CAS(6,6) | Basic ORMAS-CI workflow, energy comparison, determinant reduction |
 | 02 | `02_rasci.py` | Formaldehyde/cc-pVDZ CAS(4,3) | RASCI partitioning (RAS1/RAS2/RAS3), hole/particle control |
-| 03 | `03_casscf_optimization.py` | H2O/STO-3G CAS(4,4) | ORMAS-CI as drop-in fcisolver in PySCF CASSCF |
+| 03 | `03_casscf_optimization.py` | H2O/6-31G CAS(4,4) | ORMAS-CI as drop-in fcisolver in PySCF CASSCF |
 | 04 | `04_convergence_study.py` | N2/cc-pVDZ CAS(6,6) | Systematic constraint relaxation, accuracy/cost tradeoff |
 
 ## QDK Pipeline Examples
 
 | # | Script | System | What It Demonstrates |
 |---|--------|--------|---------------------|
-| 05 | `05_qdk_pipeline.py` | H2O/STO-3G | QDK SCF -> ORMAS-CI -> qubit Hamiltonian -> classical solve |
+| 05 | `05_qdk_pipeline.py` | H2O/6-31G | QDK SCF -> ORMAS-CI -> qubit Hamiltonian -> classical solve |
 | 06 | `06_qdk_quantum_simulation.py` | Formaldehyde/cc-pVDZ CAS(4,3) | Real IQPE + VQE with method-specific state prep |
 
 ## Running

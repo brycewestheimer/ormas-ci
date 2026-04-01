@@ -34,7 +34,7 @@ def _twisted_ethylene_rohf():
         H  1.840  0.000  0.930
         H  1.840  0.000 -0.930
         """,
-        basis="sto-3g",
+        basis="6-31g",
         spin=2,
         verbose=0,
     )
@@ -166,7 +166,7 @@ def test_sf_ormas_qdk_resource_reduction() -> None:
         H -1.269 -2.099  0.000
         H -0.081 -2.099  0.000
         """,
-        basis="sto-3g",
+        basis="6-31g",
         spin=2,
         verbose=0,
     )

@@ -9,7 +9,7 @@ Usage:
     from pyscf import gto, scf, mcscf
     from pyscf.ormas_ci import ORMASFCISolver, ORMASConfig, Subspace
 
-    mol = gto.M(atom='O 0 0 0; H 0 0.757 0.587; H 0 -0.757 0.587', basis='sto-3g')
+    mol = gto.M(atom='O 0 0 0; H 0 0.757 0.587; H 0 -0.757 0.587', basis='6-31g')
     mf = scf.RHF(mol).run()
     mc = mcscf.CASCI(mf, ncas=6, nelecas=(4, 4))
 

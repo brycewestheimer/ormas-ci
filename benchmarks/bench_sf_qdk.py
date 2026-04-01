@@ -111,7 +111,7 @@ def _build_qubit_hamiltonian(
 
 
 def _bench_ethylene() -> list[SFQDKBenchmarkResult]:
-    """Twisted ethylene, STO-3G, CAS(2,2), single SF with nroots=2."""
+    """Twisted ethylene, 6-31G, CAS(2,2), single SF with nroots=2."""
     mol = gto.M(
         atom="""
         C  0.000  0.000  0.000
@@ -121,7 +121,7 @@ def _bench_ethylene() -> list[SFQDKBenchmarkResult]:
         H  1.840  0.000  0.930
         H  1.840  0.000 -0.930
         """,
-        basis="sto-3g",
+        basis="6-31g",
         spin=2,
         verbose=0,
     )
@@ -205,7 +205,7 @@ def _bench_ethylene() -> list[SFQDKBenchmarkResult]:
 
 
 def _bench_tmm() -> list[SFQDKBenchmarkResult]:
-    """TMM, STO-3G, CAS(4,4), single SF from triplet."""
+    """TMM, 6-31G, CAS(4,4), single SF from triplet."""
     mol = gto.M(
         atom="""
         C  0.000  0.000  0.000
@@ -219,7 +219,7 @@ def _bench_tmm() -> list[SFQDKBenchmarkResult]:
         H -1.269 -2.099  0.000
         H -0.081 -2.099  0.000
         """,
-        basis="sto-3g",
+        basis="6-31g",
         spin=2,
         verbose=0,
     )

@@ -23,7 +23,7 @@ def _build_h2(distance: float) -> tuple:
     """
     mol = gto.M(
         atom=f"H 0 0 0; H 0 0 {distance}",
-        basis="sto-3g",
+        basis="6-31g",
         spin=2,
         verbose=0,
     )
@@ -60,7 +60,7 @@ def _build_twisted_ethylene() -> tuple:
         H  1.840  0.000  0.930
         H  1.840  0.000 -0.930
         """,
-        basis="sto-3g",
+        basis="6-31g",
         spin=2,
         verbose=0,
     )
@@ -101,7 +101,7 @@ def _build_tmm() -> tuple:
         H -1.269 -2.099  0.000
         H -0.081 -2.099  0.000
         """,
-        basis="sto-3g",
+        basis="6-31g",
         spin=2,
         verbose=0,
     )

@@ -5,7 +5,7 @@ Performance benchmarks comparing ORMAS-CI against PySCF's native FCI solver.
 ## Running Benchmarks
 
 ```bash
-# Default systems (H2, H2O, N2/STO-3G, N2/cc-pVDZ)
+# Default systems (H2, H2O, N2/6-31G, N2/cc-pVDZ)
 python benchmarks/bench_vs_pyscf.py
 
 # Specific systems

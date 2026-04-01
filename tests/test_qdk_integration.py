@@ -19,11 +19,11 @@ pytestmark = pytest.mark.skipif(not QDK_AVAILABLE, reason="qdk-chemistry not ins
 
 
 def _h2_qdk_scf():
-    """Run QDK SCF on H2/STO-3G and return (pyscf_scf, qdk_wfn)."""
+    """Run QDK SCF on H2/6-31G and return (pyscf_scf, qdk_wfn)."""
     xyz_str = "2\nH2\nH  0.000000  0.000000  0.000000\nH  0.000000  0.000000  0.740000"
     structure = Structure.from_xyz(xyz_str)
     scf_solver = PyscfScfSolver()
-    scf_energy, wfn = scf_solver.run(structure, 0, 1, "sto-3g")
+    scf_energy, wfn = scf_solver.run(structure, 0, 1, "6-31g")
 
     container = wfn.get_container()
     orbitals = container.get_orbitals()
@@ -94,13 +94,13 @@ def test_qdk_scf_restricted_ormas():
 def test_qdk_scf_energy_reasonable():
     """QDK SCF produces a reasonable H2 energy."""
     pyscf_scf, _ = _h2_qdk_scf()
-    # H2/STO-3G HF energy should be around -1.117
+    # H2/6-31G HF energy should be around -1.117
     assert -1.2 < pyscf_scf.e_tot < -1.0 or pyscf_scf.e_tot == 0
     # Note: orbitals_to_scf may not set e_tot; the CASCI test is authoritative.
 
 
 def _h2o_qdk_scf():
-    """Run QDK SCF on H2O/STO-3G and return pyscf_scf."""
+    """Run QDK SCF on H2O/6-31G and return pyscf_scf."""
     xyz_str = (
         "3\nWater\n"
         "O  0.000000  0.000000  0.000000\n"
@@ -109,7 +109,7 @@ def _h2o_qdk_scf():
     )
     structure = Structure.from_xyz(xyz_str)
     scf_solver = PyscfScfSolver()
-    scf_energy, wfn = scf_solver.run(structure, 0, 1, "sto-3g")
+    scf_energy, wfn = scf_solver.run(structure, 0, 1, "6-31g")
 
     container = wfn.get_container()
     orbitals = container.get_orbitals()

@@ -188,10 +188,10 @@ class TestBitstringsToConfigurations:
 
 
 def _h2_active_space_qdk():
-    """Get QDK active-space qubit Hamiltonian for H2/STO-3G."""
+    """Get QDK active-space qubit Hamiltonian for H2/6-31G."""
     xyz = "2\nH2\nH  0.000000  0.000000  0.000000\nH  0.000000  0.000000  0.740000"
     structure = Structure.from_xyz(xyz)
-    _, wfn = PyscfScfSolver().run(structure, 0, 1, "sto-3g")
+    _, wfn = PyscfScfSolver().run(structure, 0, 1, "6-31g")
     as_sel = create(
         "active_space_selector",
         "qdk_valence",
@@ -241,7 +241,7 @@ class TestRealCircuitConstruction:
         assert sum(counts.values()) > 10, "Circuit should have significant gate count"
 
     def test_h2_circuit_cnot_count(self):
-        """H2/STO-3G CAS(2,2) should have 36 CNOTs."""
+        """H2/6-31G CAS(2,2) should have 36 CNOTs."""
         qh, _ = _h2_active_space_qdk()
         trotter = Trotter()
         evolution = trotter.run(qh, 1.0)
@@ -400,7 +400,7 @@ class TestWavefunctionFilter:
 
         from pyscf import gto, mcscf, scf
 
-        mol = gto.M(atom="H 0 0 0; H 0 0 0.74", basis="sto-3g", verbose=0)
+        mol = gto.M(atom="H 0 0 0; H 0 0 0.74", basis="6-31g", verbose=0)
         mf = scf.RHF(mol).run()
         mc = mcscf.CASCI(mf, 2, 2)
         mc.verbose = 0
@@ -413,7 +413,7 @@ class TestWavefunctionFilter:
             mc.ci, 2, (1, 1)
         )
         _, wfn_obj = PyscfScfSolver().run(
-            Structure.from_xyz("2\nH2\nH 0 0 0\nH 0 0 0.74"), 0, 1, "sto-3g"
+            Structure.from_xyz("2\nH2\nH 0 0 0\nH 0 0 0.74"), 0, 1, "6-31g"
         )
         as_sel = create(
             "active_space_selector", "qdk_valence",

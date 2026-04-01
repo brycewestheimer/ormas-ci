@@ -17,12 +17,12 @@ from pyscf.ormas_ci.utils import generate_strings
 
 
 def _h2_ci_solution():
-    """Run full CI on H2/STO-3G through our ORMAS machinery.
+    """Run full CI on H2/6-31G through our ORMAS machinery.
 
     Returns:
         (ci_vector, alpha_strings, beta_strings, ncas, h1e, h2e, ecore)
     """
-    mol = gto.M(atom="H 0 0 0; H 0 0 0.74", basis="sto-3g", verbose=0)
+    mol = gto.M(atom="H 0 0 0; H 0 0 0.74", basis="6-31g", verbose=0)
     mf = scf.RHF(mol)
     mf.verbose = 0
     mf.run()
@@ -86,7 +86,7 @@ def test_rdm1_eigenvalues_in_range():
 
 def test_rdm1_matches_pyscf():
     """For unrestricted ORMAS (= full CI), RDM1 must match PySCF FCI RDM1."""
-    mol = gto.M(atom="H 0 0 0; H 0 0 0.74", basis="sto-3g", verbose=0)
+    mol = gto.M(atom="H 0 0 0; H 0 0 0.74", basis="6-31g", verbose=0)
     mf = scf.RHF(mol)
     mf.verbose = 0
     mf.run()

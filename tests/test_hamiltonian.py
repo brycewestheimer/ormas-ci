@@ -8,12 +8,12 @@ from pyscf.ormas_ci.utils import generate_strings
 
 
 def _get_h2_setup():
-    """Get H2/STO-3G integrals and determinant strings.
+    """Get H2/6-31G integrals and determinant strings.
 
     Returns:
         (alpha_strings, beta_strings, h1e, h2e, e_fci)
     """
-    mol = gto.M(atom="H 0 0 0; H 0 0 0.74", basis="sto-3g", verbose=0)
+    mol = gto.M(atom="H 0 0 0; H 0 0 0.74", basis="6-31g", verbose=0)
     mf = scf.RHF(mol)
     mf.verbose = 0
     mf.run()

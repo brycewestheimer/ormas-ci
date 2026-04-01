@@ -17,14 +17,14 @@ from pyscf.ormas_ci.subspaces import ORMASConfig, Subspace
 
 
 def test_unrestricted_matches_casci():
-    """Unrestricted ORMAS must match PySCF CASCI exactly (H2/STO-3G).
+    """Unrestricted ORMAS must match PySCF CASCI exactly (H2/6-31G).
 
     This is the GOLD STANDARD test. A single subspace spanning all active
     orbitals with no occupation restrictions is mathematically identical
     to full CASCI. The energies must agree to machine precision.
     """
     mol = gto.M(
-        atom="H 0 0 0; H 0 0 0.74", basis="sto-3g", verbose=0
+        atom="H 0 0 0; H 0 0 0.74", basis="6-31g", verbose=0
     )
     mf = scf.RHF(mol)
     mf.verbose = 0
@@ -143,7 +143,7 @@ def test_rdm1_from_fcisolver():
     a valid 1-RDM whose trace equals the total number of electrons.
     """
     mol = gto.M(
-        atom="H 0 0 0; H 0 0 0.74", basis="sto-3g", verbose=0
+        atom="H 0 0 0; H 0 0 0.74", basis="6-31g", verbose=0
     )
     mf = scf.RHF(mol)
     mf.verbose = 0
@@ -168,7 +168,7 @@ def test_rdm1_from_fcisolver():
 def test_determinant_reduction_logged(caplog):
     """Solver should log determinant count information during kernel()."""
     mol = gto.M(
-        atom="H 0 0 0; H 0 0 0.74", basis="sto-3g", verbose=0
+        atom="H 0 0 0; H 0 0 0.74", basis="6-31g", verbose=0
     )
     mf = scf.RHF(mol)
     mf.verbose = 0

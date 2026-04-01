@@ -94,9 +94,9 @@ def test_contract_2e_before_kernel():
 
 
 def _h2_mf():
-    """H2 / STO-3G RHF, return (mf, ncas, nelecas_tuple)."""
+    """H2 / 6-31G RHF, return (mf, ncas, nelecas_tuple)."""
     mol = gto.M(
-        atom="H 0 0 0; H 0 0 0.74", basis="sto-3g", verbose=0
+        atom="H 0 0 0; H 0 0 0.74", basis="6-31g", verbose=0
     )
     mf = scf.RHF(mol)
     mf.verbose = 0
@@ -376,7 +376,7 @@ def test_rdm2_matches_pyscf_h2o():
     """Unrestricted ORMAS rdm2 matches PySCF FCI rdm2 on H2O."""
     mol = gto.M(
         atom="O 0 0 0; H 0 0.757 0.587; H 0 -0.757 0.587",
-        basis="sto-3g",
+        basis="6-31g",
         verbose=0,
     )
     mf = scf.RHF(mol)
@@ -417,7 +417,7 @@ def test_rdm12s_open_shell_matches_pyscf():
     """CH2 triplet: spin-separated RDMs match PySCF FCI."""
     mol = gto.M(
         atom="C 0 0 0; H 0 0.93 0.54; H 0 -0.93 0.54",
-        basis="sto-3g",
+        basis="6-31g",
         spin=2,
         verbose=0,
     )
@@ -465,7 +465,7 @@ def test_rdm12s_open_shell_matches_pyscf():
 def test_rdm2_three_subspace_energy():
     """3-subspace ORMAS on N2: rdm2 energy matches kernel energy."""
     mol = gto.M(
-        atom="N 0 0 0; N 0 0 1.09", basis="sto-3g", verbose=0
+        atom="N 0 0 0; N 0 0 1.09", basis="6-31g", verbose=0
     )
     mf = scf.RHF(mol)
     mf.verbose = 0
@@ -561,7 +561,7 @@ def test_casscf_restricted_ormas():
     """CASSCF with 2-subspace restricted ORMAS converges on H2O."""
     mol = gto.M(
         atom="O 0 0 0; H 0 0.757 0.587; H 0 -0.757 0.587",
-        basis="sto-3g",
+        basis="6-31g",
         verbose=0,
     )
     mf = scf.RHF(mol)

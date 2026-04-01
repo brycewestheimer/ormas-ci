@@ -9,7 +9,7 @@ CASCI exactly, something is wrong.
 from pyscf import gto, scf, mcscf
 from pyscf.ormas_ci import ORMASFCISolver, ORMASConfig, Subspace
 
-mol = gto.M(atom='H 0 0 0; H 0 0 0.74', basis='sto-3g')
+mol = gto.M(atom='H 0 0 0; H 0 0 0.74', basis='6-31g')
 mf = scf.RHF(mol).run()
 
 # Full CASCI reference
@@ -37,7 +37,7 @@ Sigma core in RAS1, valence in RAS2, virtual in RAS3.
 ```python
 from pyscf.ormas_ci import RASConfig
 
-mol = gto.M(atom='N 0 0 0; N 0 0 1.1', basis='sto-3g')
+mol = gto.M(atom='N 0 0 0; N 0 0 1.1', basis='6-31g')
 mf = scf.RHF(mol).run()
 
 ncas, nelecas = 6, (3, 3)
@@ -101,7 +101,7 @@ Systematically relax constraints to see how the energy converges to CASCI.
 ```python
 from pyscf.ormas_ci.determinants import count_determinants, casci_determinant_count
 
-mol = gto.M(atom='N 0 0 0; N 0 0 1.1', basis='sto-3g')
+mol = gto.M(atom='N 0 0 0; N 0 0 1.1', basis='6-31g')
 mf = scf.RHF(mol).run()
 ncas, nelecas = 6, (3, 3)
 

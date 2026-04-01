@@ -74,7 +74,7 @@ mol = gto.M(
     H  1.840  0.000  0.930
     H  1.840  0.000 -0.930
     """,
-    basis="sto-3g", spin=2, verbose=0,
+    basis="6-31g", spin=2, verbose=0,
 )
 mf = scf.ROHF(mol)
 mf.run()

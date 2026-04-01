@@ -15,7 +15,7 @@ from pyscf import gto, scf, mcscf
 from pyscf.ormas_ci import SFORMASFCISolver, SFORMASConfig, Subspace
 
 # Stretched H2 (diradical character)
-mol = gto.M(atom='H 0 0 0; H 0 0 2.0', basis='sto-3g', spin=2, verbose=0)
+mol = gto.M(atom='H 0 0 0; H 0 0 2.0', basis='6-31g', spin=2, verbose=0)
 mf = scf.ROHF(mol)
 mf.verbose = 0
 mf.run()
@@ -55,7 +55,7 @@ mol = gto.M(
     H  1.840  0.000  0.930
     H  1.840  0.000 -0.930
     """,
-    basis="sto-3g", spin=2, verbose=0,
+    basis="6-31g", spin=2, verbose=0,
 )
 mf = scf.ROHF(mol)
 mf.verbose = 0
@@ -108,7 +108,7 @@ mol = gto.M(
     H -1.269 -2.099  0.000
     H -0.081 -2.099  0.000
     """,
-    basis="sto-3g", spin=2, verbose=0,
+    basis="6-31g", spin=2, verbose=0,
 )
 mf = scf.ROHF(mol)
 mf.verbose = 0
@@ -191,7 +191,7 @@ Combine spin-flip CI with orbital optimization.
 from pyscf import gto, scf, mcscf
 from pyscf.ormas_ci import SFORMASFCISolver, SFORMASConfig, Subspace
 
-mol = gto.M(atom='H 0 0 0; H 0 0 2.0', basis='sto-3g', spin=2, verbose=0)
+mol = gto.M(atom='H 0 0 0; H 0 0 2.0', basis='6-31g', spin=2, verbose=0)
 mf = scf.ROHF(mol)
 mf.verbose = 0
 mf.run()
@@ -233,7 +233,7 @@ Validate that SF-ORMAS with full CAS bounds reproduces CASCI exactly.
 from pyscf import gto, scf, mcscf
 from pyscf.ormas_ci import SFORMASFCISolver, SFORMASConfig, Subspace
 
-mol = gto.M(atom='H 0 0 0; H 0 0 2.0', basis='sto-3g', spin=2, verbose=0)
+mol = gto.M(atom='H 0 0 0; H 0 0 2.0', basis='6-31g', spin=2, verbose=0)
 mf = scf.ROHF(mol)
 mf.verbose = 0
 mf.run()
