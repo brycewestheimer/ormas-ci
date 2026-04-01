@@ -155,6 +155,24 @@ class TestSFORMASConfig:
                 subspaces=[Subspace("cas", [0, 1], 0, 4)],
             )
 
+    def test_sf_config_odd_spin_difference(self) -> None:
+        """Odd ref_spin - target_spin raises ValueError about parity."""
+        with pytest.raises(ValueError, match="same parity"):
+            SFORMASConfig(
+                ref_spin=3, target_spin=0, n_spin_flips=1,
+                n_active_orbitals=3, n_active_electrons=3,
+                subspaces=[Subspace("cas", [0, 1, 2], 0, 6)],
+            )
+
+    def test_sf_config_even_ref_odd_target_parity(self) -> None:
+        """Even ref_spin with odd target_spin raises ValueError about parity."""
+        with pytest.raises(ValueError, match="same parity"):
+            SFORMASConfig(
+                ref_spin=4, target_spin=1, n_spin_flips=1,
+                n_active_orbitals=4, n_active_electrons=4,
+                subspaces=[Subspace("cas", [0, 1, 2, 3], 0, 8)],
+            )
+
 
 class TestSFRASConfig:
     """Tests for SFRASConfig conversion."""
@@ -339,8 +357,10 @@ class TestReferenceAnalysis:
         self, triplet_cas22: SFORMASConfig,
     ) -> None:
         """Well-configured system returns no warnings."""
-        mo_occ = np.array([1.0, 1.0])  # Both singly occupied, in sf_cas
-        result = validate_reference_consistency(triplet_cas22, mo_occ=mo_occ)
+        active_occ = np.array([1.0, 1.0])  # Both singly occupied, in sf_cas
+        result = validate_reference_consistency(
+            triplet_cas22, active_mo_occ=active_occ, sf_cas_subspace_idx=0,
+        )
         assert result["warnings"] == []
         assert result["n_det"] == 4
         assert result["nelecas_ref"] == (2, 0)
@@ -356,9 +376,11 @@ class TestReferenceAnalysis:
                 Subspace("sf_cas", [2, 3], 0, 4),
             ],
         )
-        # Orbital 0 is singly occupied but assigned to "hole" space
-        mo_occ = np.array([1.0, 2.0, 1.0, 0.0])
-        result = validate_reference_consistency(cfg, mo_occ=mo_occ)
+        # Orbital 0 is singly occupied but assigned to "hole" space (idx 0)
+        active_occ = np.array([1.0, 2.0, 1.0, 0.0])
+        result = validate_reference_consistency(
+            cfg, active_mo_occ=active_occ, sf_cas_subspace_idx=1,
+        )
         assert len(result["warnings"]) == 1
         assert "not in the SF-CAS" in result["warnings"][0]
 

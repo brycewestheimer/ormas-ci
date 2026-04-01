@@ -32,16 +32,20 @@ $M_s(\text{ref}) = +1$ and $M_s(\text{target}) = 0$. The high-spin
 triplet is a single determinant even though the target singlet is
 multiconfigurational.
 
-## Spin Completeness via ORMAS
+## Why ORMAS Guarantees Spin Completeness
 
 A naive spin-flip CI that applies a fixed number of flips generates an
 $M_s$ space that is **not** an eigenspace of $\hat{S}^2$. The resulting
 states suffer from spin contamination.
 
-SF-ORMAS achieves spin completeness by using ORMAS subspace constraints
-that include all configurations needed for the full spin-complete manifold.
-The subspace occupation bounds are chosen so that every determinant required
-to construct proper $\hat{S}^2$ eigenstates is present in the CI expansion.
+ORMAS subspace constraints bound the *total* electron count (alpha + beta)
+per subspace, not the spin-resolved counts. The $\hat{S}^2$ operator only
+relabels spin within the same spatial orbital — it never moves an electron
+between spatial orbitals — so it preserves the total occupation of every
+subspace. Any ORMAS-constrained determinant space is therefore automatically
+closed under $\hat{S}^2$, and CI eigenstates are proper spin eigenfunctions
+with no contamination. This is an intrinsic property of ORMAS, not
+something specific to the spin-flip approach.
 
 **Example: two electrons in two orbitals.** The triplet reference is
 $|\alpha\alpha\rangle$. A single spin flip generates $|\alpha\beta\rangle$
@@ -148,14 +152,23 @@ ROHF orbitals.
 **ORMAS-CI:** SF-ORMAS is a specific application of the {doc}`ormas`
 framework. It uses the same enumeration machinery and subspace constraints
 but generates determinants in a different $M_s$ sector than the reference.
+With full (unrestricted) subspace bounds, SF-ORMAS is identical to standard
+CASCI in the target $M_s$ sector. This equivalence validates the ORMAS
+enumeration machinery; the SF-specific value lies in using high-spin ROHF
+orbitals and restricting the active space with tighter bounds.
 
 ## Implementation in This Package
 
-SF-ORMAS is implemented through the `SFORMASFCISolver` class and the
-`SFORMASConfig` / `SpinFlipConfig` configuration objects. The solver
-wraps the standard `ORMASFCISolver`, handling the mapping between
-reference and target electron counts automatically. See the API
-documentation for usage details.
+SF-ORMAS determinant enumeration is standard ORMAS enumeration in the
+target $M_s$ sector. The `SFORMASConfig` class translates reference and
+target spin specifications into a standard `ORMASConfig` via
+`to_ormas_config()`, and the existing `build_determinant_list()` does the
+work. The wrapper classes provide configuration management, validation,
+and convenience constructors but do not implement a separate enumeration
+algorithm.
+
+The solver `SFORMASFCISolver` extends `ORMASFCISolver` with SF-specific
+validation and logging. See the API documentation for usage details.
 
 ## Key Reference
 

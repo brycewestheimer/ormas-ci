@@ -1289,12 +1289,11 @@ class SFORMASFCISolver(ORMASFCISolver):
     is inherited unchanged.
     """
 
-    def __init__(self, sf_config: SFORMASConfig, **kwargs: object) -> None:
+    def __init__(self, sf_config: SFORMASConfig) -> None:
         """Initialize the SF-ORMAS solver.
 
         Args:
             sf_config: Spin-flip ORMAS configuration.
-            **kwargs: Additional arguments passed to ORMASFCISolver.
         """
         self.sf_config = sf_config
 
@@ -1302,7 +1301,7 @@ class SFORMASFCISolver(ORMASFCISolver):
         ormas_config = sf_config.to_ormas_config()
 
         # Initialize parent with the translated config
-        super().__init__(ormas_config, **kwargs)
+        super().__init__(ormas_config)
 
         # Store SF metadata for logging and diagnostics
         self._sf_metadata = {
@@ -1350,18 +1349,15 @@ class SFORMASFCISolver(ORMASFCISolver):
         log.info("=" * 60)
         log.info("SF-ORMAS-CI Calculation")
         log.info("=" * 60)
-        log.info(f"Reference spin (2S):  {self._sf_metadata['ref_spin']}")
-        log.info(f"Target spin (2S):     {self._sf_metadata['target_spin']}")
+        log.info(f"Reference 2*M_s:      {self._sf_metadata['ref_spin']}")
+        log.info(f"Target 2*M_s:         {self._sf_metadata['target_spin']}")
         log.info(f"Spin flips:           {self._sf_metadata['n_spin_flips']}")
         log.info(f"Reference nelecas:    {self._sf_metadata['nelecas_ref']}")
         log.info(f"Target nelecas:       {self._sf_metadata['nelecas_target']}")
         log.info("=" * 60)
 
         # Validate consistency between PySCF's nelecas and our config
-        if isinstance(nelecas, (int, np.integer)):
-            nelec_check = (nelecas // 2, nelecas - nelecas // 2)
-        else:
-            nelec_check = tuple(nelecas)
+        nelec_check = self._normalize_nelecas(nelecas)
 
         expected = self.sf_config.nelecas_target
         if nelec_check != expected:

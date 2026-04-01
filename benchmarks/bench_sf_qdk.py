@@ -145,8 +145,8 @@ def _bench_ethylene() -> list[SFQDKBenchmarkResult]:
     n_qubits = 0
     n_pauli_terms = 0
     if qubit_ham is not None:
-        n_qubits = qubit_ham.n_qubits
-        n_pauli_terms = qubit_ham.n_terms
+        n_qubits = qubit_ham.num_qubits
+        n_pauli_terms = len(qubit_ham.pauli_strings)
 
     results: list[SFQDKBenchmarkResult] = []
 
@@ -243,8 +243,8 @@ def _bench_tmm() -> list[SFQDKBenchmarkResult]:
     n_qubits = 0
     n_pauli_terms = 0
     if qubit_ham is not None:
-        n_qubits = qubit_ham.n_qubits
-        n_pauli_terms = qubit_ham.n_terms
+        n_qubits = qubit_ham.num_qubits
+        n_pauli_terms = len(qubit_ham.pauli_strings)
 
     results: list[SFQDKBenchmarkResult] = []
 

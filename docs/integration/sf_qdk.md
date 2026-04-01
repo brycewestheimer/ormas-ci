@@ -160,14 +160,15 @@ quantifies the potential quantum resource savings:
 - **Qubit count**: For the same active space, the qubit count
   under Jordan-Wigner mapping is identical (2 × n_active_orbitals).
   ORMAS restrictions do not change the number of qubits.
-- **State preparation**: Fewer determinants translate to simpler
-  state preparation circuits with fewer CNOT gates. A CI vector
-  over 4 determinants requires fewer unitary rotations than one
-  over 16.
+- **State preparation**: Fewer determinants in the CI expansion *may*
+  reduce the complexity of state preparation circuits. Quantifying
+  gate-count savings requires circuit compilation, which is outside
+  the scope of this package.
 - **Wavefunction-aware filtering**: ORMAS-restricted wavefunctions
   may allow more aggressive Pauli term filtering, since terms
-  coupling excluded determinants can be dropped without affecting
-  accuracy.
+  coupling excluded determinants could potentially be dropped. The
+  extent of this benefit depends on the qubit mapping and the
+  specific system.
 
 ```python
 n_det_sf = count_sf_determinants(sf_config)

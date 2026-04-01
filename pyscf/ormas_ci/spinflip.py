@@ -47,7 +47,8 @@ def count_sf_determinants(sf_config: SFORMASConfig) -> int:
 
 def validate_reference_consistency(
     sf_config: SFORMASConfig,
-    mo_occ: np.ndarray | None = None,
+    active_mo_occ: np.ndarray | None = None,
+    sf_cas_subspace_idx: int | None = None,
 ) -> dict:
     """Validate the SF configuration against a ROHF reference.
 
@@ -57,16 +58,21 @@ def validate_reference_consistency(
 
     Args:
         sf_config: The spin-flip ORMAS configuration.
-        mo_occ: MO occupation numbers from ROHF (shape: (n_mo,) with
-            values 0, 1, 2). If provided, checks consistency with
-            subspace assignments.
+        active_mo_occ: Active-space MO occupation numbers from ROHF
+            (shape: ``(n_active_orbitals,)`` with values 0, 1, or 2).
+            Indices are active-space-local, matching
+            ``Subspace.orbital_indices``.
+        sf_cas_subspace_idx: Index into ``sf_config.subspaces`` that
+            identifies the SF-CAS subspace. When provided, singly-occupied
+            orbitals not in this subspace trigger a warning. When ``None``,
+            the SF-CAS placement check is skipped.
 
     Returns:
         Diagnostic information including:
         - 'n_det': determinant count
         - 'nelecas_ref': reference (alpha, beta) in active space
         - 'nelecas_target': target (alpha, beta) in active space
-        - 'ref_singly_occupied': indices of singly-occupied orbitals
+        - 'ref_singly_occupied': active-space-local indices of singly-occupied orbitals
         - 'warnings': list of warning strings
     """
     warnings: list[str] = []
@@ -82,20 +88,18 @@ def validate_reference_consistency(
 
     n_det = count_sf_determinants(sf_config)
 
-    # Identify singly-occupied reference orbitals if mo_occ provided
+    # Identify singly-occupied reference orbitals if occupation provided
     ref_singly_occ: list[int] = []
-    if mo_occ is not None:
+    if active_mo_occ is not None:
         ref_singly_occ = [
-            i for i, occ in enumerate(mo_occ) if abs(occ - 1.0) < 0.1
+            i for i, occ in enumerate(active_mo_occ) if abs(occ - 1.0) < 0.1
         ]
 
         # Check: singly occupied orbitals should be in the SF-CAS subspace
-        sf_cas_indices: set[int] = set()
-        for sub in sf_config.subspaces:
-            if sub.name.lower() in ("sf_cas", "ras2_sf", "ras2"):
-                sf_cas_indices.update(sub.orbital_indices)
-
-        if sf_cas_indices:
+        if sf_cas_subspace_idx is not None:
+            sf_cas_indices = set(
+                sf_config.subspaces[sf_cas_subspace_idx].orbital_indices
+            )
             misplaced = [
                 i for i in ref_singly_occ if i not in sf_cas_indices
             ]

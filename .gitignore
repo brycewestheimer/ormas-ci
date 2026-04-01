@@ -19,3 +19,7 @@ htmlcov/
 
 # MkDocs (legacy)
 site/
+
+# Local files
+.local/
+CLAUDE.md

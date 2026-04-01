@@ -235,13 +235,18 @@ class RASConfig:
 class SFORMASConfig:
     """Configuration for a spin-flip ORMAS-CI calculation.
 
-    Specifies the reference state, target multiplicity, number of spin flips,
+    Specifies the reference state, target M_s sector, number of spin flips,
     and the ORMAS subspace structure for the SF-CI expansion.
+
+    Note: ``target_spin`` specifies 2*M_s for the target CI sector, not
+    the spin quantum number S. The solver finds **all** spin eigenstates
+    within that M_s sector (e.g., at M_s=0 both singlet and triplet
+    states are obtained). It does not select a specific multiplicity.
     """
 
     # Reference state specification
-    ref_spin: int
-    target_spin: int
+    ref_spin: int  #: 2*M_s of the ROHF reference.
+    target_spin: int  #: 2*M_s of the target CI sector (not 2S).
     n_spin_flips: int
 
     # Active space
@@ -257,7 +262,6 @@ class SFORMASConfig:
 
     def __post_init__(self) -> None:
         """Validate and compute derived quantities."""
-        expected_n_sf = (self.ref_spin - self.target_spin) // 2
         if self.ref_spin < 0:
             raise ValueError(
                 f"ref_spin ({self.ref_spin}) must be non-negative."
@@ -272,6 +276,14 @@ class SFORMASConfig:
                 f"({self.target_spin}). "
                 f"SF-ORMAS flips alpha->beta, reducing M_s."
             )
+        if (self.ref_spin - self.target_spin) % 2 != 0:
+            raise ValueError(
+                f"ref_spin ({self.ref_spin}) and target_spin "
+                f"({self.target_spin}) must have the same parity. "
+                f"Their difference must be even to represent an "
+                f"integer number of spin flips."
+            )
+        expected_n_sf = (self.ref_spin - self.target_spin) // 2
         if self.n_spin_flips != expected_n_sf:
             raise ValueError(
                 f"n_spin_flips ({self.n_spin_flips}) inconsistent with "
@@ -402,6 +414,13 @@ class SFRASConfig:
 
     def to_sf_ormas_config(self) -> SFORMASConfig:
         """Convert to SFORMASConfig."""
+        if (self.ref_spin - self.target_spin) % 2 != 0:
+            raise ValueError(
+                f"ref_spin ({self.ref_spin}) and target_spin "
+                f"({self.target_spin}) must have the same parity. "
+                f"Their difference must be even to represent an "
+                f"integer number of spin flips."
+            )
         n_sf = (self.ref_spin - self.target_spin) // 2
         n_active_orbitals = (
             len(self.ras1_orbitals)
