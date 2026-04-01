@@ -311,7 +311,7 @@ class ORMASFCISolver(lib.StreamObject):
         self._sigma_einsum = None
         self.einsum_string_threshold = 300
 
-    def _normalize_nelecas(self, nelecas):
+    def _normalize_nelecas(self, nelecas) -> tuple[int, int]:
         """Normalize nelecas to a (n_alpha, n_beta) tuple.
 
         If nelecas is already a tuple, use it directly. If it is an integer
@@ -335,10 +335,10 @@ class ORMASFCISolver(lib.StreamObject):
                     f"explicitly for open-shell systems."
                 )
             return (na, nb)
-        result = tuple(nelecas)
-        if len(result) >= 2 and any(n < 0 for n in result[:2]):
-            raise ValueError(f"nelecas components must be non-negative, got {result}")
-        return result
+        na, nb = int(nelecas[0]), int(nelecas[1])
+        if na < 0 or nb < 0:
+            raise ValueError(f"nelecas components must be non-negative, got ({na}, {nb})")
+        return (na, nb)
 
     def _restore_eri(self, eri, ncas):
         """Restore ERI to full 4-index tensor if compressed."""
