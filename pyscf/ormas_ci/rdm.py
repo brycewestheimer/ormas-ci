@@ -72,8 +72,8 @@ def make_rdm1(
                     # Single alpha excitation: q -> p
                     holes = bits_to_indices((ai ^ aj) & ai)
                     parts = bits_to_indices((ai ^ aj) & aj)
-                    q = holes[0]   # occupied in i, not in j
-                    p = parts[0]   # occupied in j, not in i
+                    q = holes[0]  # occupied in i, not in j
+                    p = parts[0]  # occupied in j, not in i
                     sign = compute_phase(ai, p, q)
                     rdm1[p, q] += sign * ci_ij
 
@@ -203,6 +203,11 @@ def _make_rdm12s_impl(
         rdm1 has shape (ncas, ncas) and each rdm2 has shape
         (ncas, ncas, ncas, ncas).
     """
+    # Operator ordering convention (PySCF standard):
+    #   rdm2[p,q,r,s] = <a+_p a+_r a_s a_q>
+    # For same-spin double excitations, antisymmetric permutations arise from
+    # swapping creation (p<->q) and annihilation (r<->s) operators.
+    # Phase factors are computed right-to-left on the ket determinant.
     n_det = len(alpha_strings)
     rdm1a = np.zeros((ncas, ncas), dtype=np.float64)
     rdm1b = np.zeros((ncas, ncas), dtype=np.float64)
@@ -250,7 +255,7 @@ def _make_rdm12s_impl(
 
                 # 2-RDM alpha-alpha pairs
                 for idx_p, p in enumerate(occ_a):
-                    for q in occ_a[idx_p + 1:]:
+                    for q in occ_a[idx_p + 1 :]:
                         rdm2aa[p, p, q, q] += ci_ij
                         rdm2aa[p, q, q, p] -= ci_ij
                         rdm2aa[q, q, p, p] += ci_ij
@@ -258,7 +263,7 @@ def _make_rdm12s_impl(
 
                 # 2-RDM beta-beta pairs
                 for idx_p, p in enumerate(occ_b):
-                    for q in occ_b[idx_p + 1:]:
+                    for q in occ_b[idx_p + 1 :]:
                         rdm2bb[p, p, q, q] += ci_ij
                         rdm2bb[p, q, q, p] -= ci_ij
                         rdm2bb[q, q, p, p] += ci_ij
@@ -277,7 +282,7 @@ def _make_rdm12s_impl(
                 # For <i|a+_p a_q|j>, we need a_q to annihilate from j (q in j not i)
                 # and a+_p to create to match i (p in i not j)
                 _, holes, particles = excitation_info(ai, aj)
-                p_cre = holes[0]      # orbital in bra i, not ket j -> created
+                p_cre = holes[0]  # orbital in bra i, not ket j -> created
                 q_ann = particles[0]  # orbital in ket j, not bra i -> annihilated
                 sign = compute_phase(ai, p_cre, q_ann)
 
@@ -339,7 +344,7 @@ def _make_rdm12s_impl(
                 _, holes, particles = excitation_info(ai, aj)
                 # holes = orbitals in bra i, not in ket j
                 # particles = orbitals in ket j, not in bra i
-                p, q = holes[0], holes[1]      # created orbitals (in i)
+                p, q = holes[0], holes[1]  # created orbitals (in i)
                 r, s = particles[0], particles[1]  # annihilated orbitals (in j)
 
                 # Phase using intermediate determinant (same pattern as slater_condon.py)
@@ -416,11 +421,11 @@ def _make_rdm12s_impl(
                 _, b_holes, b_particles = excitation_info(bi, bj)
 
                 # Alpha channel: create at a_holes[0], annihilate at a_particles[0]
-                p_a = a_holes[0]      # alpha orbital in bra i (created)
+                p_a = a_holes[0]  # alpha orbital in bra i (created)
                 q_a = a_particles[0]  # alpha orbital in ket j (annihilated)
 
                 # Beta channel: create at b_holes[0], annihilate at b_particles[0]
-                p_b = b_holes[0]      # beta orbital in bra i (created)
+                p_b = b_holes[0]  # beta orbital in bra i (created)
                 q_b = b_particles[0]  # beta orbital in ket j (annihilated)
 
                 sign_a = compute_phase(ai, p_a, q_a)

@@ -206,6 +206,7 @@ def _h2_active_space_qdk():
 
 
 @qdk_only
+@pytest.mark.slow
 class TestQubitHamiltonianH2:
     """Test qubit Hamiltonian construction for H2."""
 
@@ -309,8 +310,13 @@ class TestBenchmarkResultNewFields:
         from bench_qdk_quantum import BenchmarkResult
 
         r = BenchmarkResult(
-            system="test", method="test", basis="test",
-            energy=0.0, energy_error_mha=0.0, n_det=0, t_fermionic=0.0,
+            system="test",
+            method="test",
+            basis="test",
+            energy=0.0,
+            energy_error_mha=0.0,
+            n_det=0,
+            t_fermionic=0.0,
         )
         assert r.ham_1_norm == 0.0
         assert r.re_physical_qubits == 0
@@ -323,8 +329,13 @@ class TestBenchmarkResultNewFields:
         from bench_qdk_quantum import BenchmarkResult
 
         r = BenchmarkResult(
-            system="test", method="test", basis="test",
-            energy=0.0, energy_error_mha=0.0, n_det=0, t_fermionic=0.0,
+            system="test",
+            method="test",
+            basis="test",
+            energy=0.0,
+            energy_error_mha=0.0,
+            n_det=0,
+            t_fermionic=0.0,
         )
         d = asdict(r)
         assert "ham_1_norm" in d
@@ -358,14 +369,16 @@ class TestResourceEstimation:
 
     def test_logical_counts_construction(self):
         """LogicalCounts can be constructed from circuit data."""
-        lc = LogicalCounts({
-            "numQubits": 5,
-            "tCount": 0,
-            "rotationCount": 50,
-            "rotationDepth": 50,
-            "cczCount": 0,
-            "measurementCount": 5,
-        })
+        lc = LogicalCounts(
+            {
+                "numQubits": 5,
+                "tCount": 0,
+                "rotationCount": 50,
+                "rotationDepth": 50,
+                "cczCount": 0,
+                "measurementCount": 5,
+            }
+        )
         assert lc["numQubits"] == 5
         assert lc["rotationCount"] == 50
 
@@ -409,20 +422,18 @@ class TestWavefunctionFilter:
         qh, ham = _h2_active_space_qdk()
 
         # Build wavefunction via the state prep pipeline
-        ci_coeffs, ci_alpha, ci_beta = _pyscf_ci_to_determinant_arrays(
-            mc.ci, 2, (1, 1)
-        )
+        ci_coeffs, ci_alpha, ci_beta = _pyscf_ci_to_determinant_arrays(mc.ci, 2, (1, 1))
         _, wfn_obj = PyscfScfSolver().run(
             Structure.from_xyz("2\nH2\nH 0 0 0\nH 0 0 0.74"), 0, 1, "6-31g"
         )
         as_sel = create(
-            "active_space_selector", "qdk_valence",
-            num_active_electrons=2, num_active_orbitals=2,
+            "active_space_selector",
+            "qdk_valence",
+            num_active_electrons=2,
+            num_active_orbitals=2,
         )
         qdk_orbs = as_sel.run(wfn_obj).get_orbitals()
-        _, _, wfn = _build_method_state_prep(
-            ci_coeffs, ci_alpha, ci_beta, 2, qdk_orbs
-        )
+        _, _, wfn = _build_method_state_prep(ci_coeffs, ci_alpha, ci_beta, 2, qdk_orbs)
         assert wfn is not None
 
         from bench_qdk_quantum import _run_wavefunction_filter

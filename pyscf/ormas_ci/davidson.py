@@ -10,6 +10,8 @@ References:
     G.L.G. Sleijpen & H.A. Van der Vorst, SIAM J. Matrix Anal. Appl. 17, 401 (1996).
 """
 
+import warnings
+
 import numpy as np
 
 __all__ = ["davidson"]
@@ -66,10 +68,12 @@ def davidson(
         v /= np.linalg.norm(v)
         x0.append(v)
 
-    # Orthonormalize initial guesses
+    # Orthonormalize initial guesses (two CGS passes for numerical stability)
     vs = []
     for v in x0[:nroots]:
         v = v.copy().astype(np.float64)
+        for u in vs:
+            v -= u * np.dot(u, v)
         for u in vs:
             v -= u * np.dot(u, v)
         norm = np.linalg.norm(v)
@@ -139,10 +143,11 @@ def davidson(
                 print(f"Davidson converged in {icycle + 1} iterations")
             break
 
-        # Orthogonalize new vectors against existing subspace
+        # Orthogonalize new vectors against existing subspace (two CGS passes)
         added = 0
         for delta in new_vs:
-            # Orthogonalize against all existing subspace vectors
+            for v in subspace_v:
+                delta -= v * np.dot(v, delta)
             for v in subspace_v:
                 delta -= v * np.dot(v, delta)
             norm = np.linalg.norm(delta)
@@ -153,18 +158,26 @@ def davidson(
                 added += 1
 
         if added == 0:
-            # No new vectors could be added — subspace is exhausted
+            unconverged = [k for k in range(nroots) if not converged[k]]
+            if unconverged:
+                warnings.warn(
+                    f"Davidson: subspace exhausted at iter {icycle} with "
+                    f"{len(unconverged)} unconverged roots "
+                    f"(indices {unconverged}). "
+                    f"Results for these roots may be inaccurate.",
+                    stacklevel=2,
+                )
             if verbose > 0:
-                print(f"Davidson: no new vectors at iter {icycle}, converging")
+                print(
+                    f"Davidson: no new vectors at iter {icycle}, "
+                    f"{len(unconverged)} roots unconverged"
+                )
             break
 
         # Restart if subspace gets too large
         if len(subspace_v) > max_space * nroots:
             if verbose > 0:
-                print(
-                    f"Davidson: restarting, subspace {len(subspace_v)} > "
-                    f"{max_space * nroots}"
-                )
+                print(f"Davidson: restarting, subspace {len(subspace_v)} > {max_space * nroots}")
             # Keep the nroots best Ritz vectors as the new subspace
             new_subspace_v = []
             new_subspace_hv = []
@@ -196,9 +209,14 @@ def davidson(
 
     # Pad if fewer roots found than requested
     if nroots_eff < nroots:
-        eigenvalues = np.concatenate([eigenvalues, np.zeros(nroots - nroots_eff)])
+        warnings.warn(
+            f"Davidson found {nroots_eff} of {nroots} requested roots. "
+            f"Missing roots padded with NaN.",
+            stacklevel=2,
+        )
+        eigenvalues = np.concatenate([eigenvalues, np.full(nroots - nroots_eff, np.nan)])
         eigenvectors = np.concatenate(
-            [eigenvectors, np.zeros((n, nroots - nroots_eff))], axis=1
+            [eigenvectors, np.full((n, nroots - nroots_eff), np.nan)], axis=1
         )
 
     return eigenvalues, eigenvectors, converged

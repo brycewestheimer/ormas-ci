@@ -15,7 +15,11 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import gc
 import json
+import os
+import platform
+import statistics
 import sys
 import time
 from dataclasses import asdict, dataclass
@@ -58,6 +62,7 @@ class SFQDKBenchmarkResult:
     s2: float
     n_qubits: int = 0
     n_pauli_terms: int = 0
+    time_stddev: float = 0.0
 
 
 # ---------------------------------------------------------------------------
@@ -110,7 +115,7 @@ def _build_qubit_hamiltonian(
 # ---------------------------------------------------------------------------
 
 
-def _bench_ethylene() -> list[SFQDKBenchmarkResult]:
+def _bench_ethylene(repeats: int = 3) -> list[SFQDKBenchmarkResult]:
     """Twisted ethylene, 6-31G, CAS(2,2), single SF with nroots=2."""
     mol = gto.M(
         atom="""
@@ -151,12 +156,18 @@ def _bench_ethylene() -> list[SFQDKBenchmarkResult]:
     results: list[SFQDKBenchmarkResult] = []
 
     # PySCF native CASCI (nroots=2)
-    t0 = time.perf_counter()
-    mc_ref = mcscf.CASCI(mf, ncas, nelecas)
-    mc_ref.verbose = 0
-    mc_ref.fcisolver.nroots = 2
-    e_ref = mc_ref.kernel()[0]
-    time_cas = time.perf_counter() - t0
+    cas_timings: list[float] = []
+    for _ in range(repeats):
+        gc.disable()
+        t0 = time.perf_counter()
+        mc_ref = mcscf.CASCI(mf, ncas, nelecas)
+        mc_ref.verbose = 0
+        mc_ref.fcisolver.nroots = 2
+        e_ref = mc_ref.kernel()[0]
+        cas_timings.append(time.perf_counter() - t0)
+        gc.enable()
+    time_cas = statistics.median(cas_timings)
+    time_cas_std = statistics.stdev(cas_timings) if len(cas_timings) >= 2 else 0.0
 
     n_det_cas = casci_determinant_count(ncas, nelecas)
     for i, e in enumerate(e_ref):
@@ -171,17 +182,24 @@ def _bench_ethylene() -> list[SFQDKBenchmarkResult]:
                 s2=float(ss),
                 n_qubits=n_qubits,
                 n_pauli_terms=n_pauli_terms,
+                time_stddev=time_cas_std,
             )
         )
 
     # SF-ORMAS (nroots=2)
-    t0 = time.perf_counter()
-    mc_sf = mcscf.CASCI(mf, ncas, nelecas)
-    mc_sf.verbose = 0
-    mc_sf.fcisolver = SFORMASFCISolver(sf_config)
-    mc_sf.fcisolver.nroots = 2
-    e_sf = mc_sf.kernel()[0]
-    time_sf = time.perf_counter() - t0
+    sf_timings: list[float] = []
+    for _ in range(repeats):
+        gc.disable()
+        t0 = time.perf_counter()
+        mc_sf = mcscf.CASCI(mf, ncas, nelecas)
+        mc_sf.verbose = 0
+        mc_sf.fcisolver = SFORMASFCISolver(sf_config)
+        mc_sf.fcisolver.nroots = 2
+        e_sf = mc_sf.kernel()[0]
+        sf_timings.append(time.perf_counter() - t0)
+        gc.enable()
+    time_sf = statistics.median(sf_timings)
+    time_sf_std = statistics.stdev(sf_timings) if len(sf_timings) >= 2 else 0.0
 
     n_det_sf = count_sf_determinants(sf_config)
     ci_list = mc_sf.ci if isinstance(mc_sf.ci, list) else [mc_sf.ci]
@@ -198,13 +216,14 @@ def _bench_ethylene() -> list[SFQDKBenchmarkResult]:
                 s2=float(ss),
                 n_qubits=n_qubits,
                 n_pauli_terms=n_pauli_terms,
+                time_stddev=time_sf_std,
             )
         )
 
     return results
 
 
-def _bench_tmm() -> list[SFQDKBenchmarkResult]:
+def _bench_tmm(repeats: int = 3) -> list[SFQDKBenchmarkResult]:
     """TMM, 6-31G, CAS(4,4), single SF from triplet."""
     mol = gto.M(
         atom="""
@@ -249,11 +268,17 @@ def _bench_tmm() -> list[SFQDKBenchmarkResult]:
     results: list[SFQDKBenchmarkResult] = []
 
     # PySCF native CASCI
-    t0 = time.perf_counter()
-    mc_ref = mcscf.CASCI(mf, ncas, nelecas)
-    mc_ref.verbose = 0
-    e_ref = mc_ref.kernel()[0]
-    time_cas = time.perf_counter() - t0
+    cas_timings: list[float] = []
+    for _ in range(repeats):
+        gc.disable()
+        t0 = time.perf_counter()
+        mc_ref = mcscf.CASCI(mf, ncas, nelecas)
+        mc_ref.verbose = 0
+        e_ref = mc_ref.kernel()[0]
+        cas_timings.append(time.perf_counter() - t0)
+        gc.enable()
+    time_cas = statistics.median(cas_timings)
+    time_cas_std = statistics.stdev(cas_timings) if len(cas_timings) >= 2 else 0.0
 
     ss_ref, _ = mc_ref.fcisolver.spin_square(mc_ref.ci, ncas, nelecas)
     n_det_cas = casci_determinant_count(ncas, nelecas)
@@ -267,16 +292,23 @@ def _bench_tmm() -> list[SFQDKBenchmarkResult]:
             s2=float(ss_ref),
             n_qubits=n_qubits,
             n_pauli_terms=n_pauli_terms,
+            time_stddev=time_cas_std,
         )
     )
 
     # SF-ORMAS
-    t0 = time.perf_counter()
-    mc_sf = mcscf.CASCI(mf, ncas, nelecas)
-    mc_sf.verbose = 0
-    mc_sf.fcisolver = SFORMASFCISolver(sf_config)
-    e_sf = mc_sf.kernel()[0]
-    time_sf = time.perf_counter() - t0
+    sf_timings: list[float] = []
+    for _ in range(repeats):
+        gc.disable()
+        t0 = time.perf_counter()
+        mc_sf = mcscf.CASCI(mf, ncas, nelecas)
+        mc_sf.verbose = 0
+        mc_sf.fcisolver = SFORMASFCISolver(sf_config)
+        e_sf = mc_sf.kernel()[0]
+        sf_timings.append(time.perf_counter() - t0)
+        gc.enable()
+    time_sf = statistics.median(sf_timings)
+    time_sf_std = statistics.stdev(sf_timings) if len(sf_timings) >= 2 else 0.0
 
     ss_sf, _ = mc_sf.fcisolver.spin_square(mc_sf.ci, ncas, nelecas)
     n_det_sf = count_sf_determinants(sf_config)
@@ -290,6 +322,7 @@ def _bench_tmm() -> list[SFQDKBenchmarkResult]:
             s2=float(ss_sf),
             n_qubits=n_qubits,
             n_pauli_terms=n_pauli_terms,
+            time_stddev=time_sf_std,
         )
     )
 
@@ -370,6 +403,12 @@ Examples:
         ),
     )
     parser.add_argument("--output-json", type=str, default=None)
+    parser.add_argument(
+        "--repeats",
+        type=int,
+        default=3,
+        help="Number of timing repeats per benchmark (default: 3)",
+    )
     args = parser.parse_args()
 
     if args.systems:
@@ -391,7 +430,7 @@ Examples:
     all_results: list[SFQDKBenchmarkResult] = []
     for name, bench_fn in systems.items():
         print(f"Running {name}...", flush=True)
-        all_results.extend(bench_fn())
+        all_results.extend(bench_fn(repeats=args.repeats))
 
     print_results(all_results)
 
@@ -404,6 +443,9 @@ Examples:
             "numpy_version": np.__version__,
             "qdk_available": QDK_AVAILABLE,
             "timestamp": time.strftime("%Y-%m-%dT%H:%M:%S"),
+            "platform": platform.platform(),
+            "cpu_model": platform.processor() or "unknown",
+            "cpu_count": os.cpu_count(),
         },
         "results": [asdict(r) for r in all_results],
     }

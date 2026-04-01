@@ -72,6 +72,25 @@ def test_compute_phase_same_orbital():
     assert compute_phase(0b1111, 2, 2) == 1
 
 
+def test_compute_phase_large_indices():
+    """Phase computation works for orbital indices > 32."""
+    # Orbitals 0, 33, 63 occupied
+    string = (1 << 0) | (1 << 33) | (1 << 63)
+    # Excite from 0 to 63: one occupied orbital (33) between them -> phase = -1
+    assert compute_phase(string, 63, 0) == -1
+    # Excite from 33 to 63: no occupied between -> phase = +1
+    assert compute_phase(string, 63, 33) == 1
+
+
+def test_compute_phase_adjacent_large():
+    """Phase for adjacent orbitals at high index."""
+    string = (1 << 50) | (1 << 51) | (1 << 52)
+    # Excite from 50 to 52: one occupied (51) between -> phase = -1
+    assert compute_phase(string, 50, 52) == -1
+    # Excite from 50 to 51: no occupied between -> phase = +1
+    assert compute_phase(string, 50, 51) == 1
+
+
 def test_subspace_occupation():
     """Subspace occupation counts occupied orbitals within specified indices."""
     string = 0b1011  # orbitals 0, 1, 3 occupied

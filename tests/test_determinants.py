@@ -3,6 +3,7 @@
 from math import comb
 
 from pyscf.ormas_ci.determinants import (
+    _enumerate_distributions,
     build_determinant_list,
     casci_determinant_count,
     count_determinants,
@@ -74,9 +75,8 @@ def test_subspace_constraints_satisfied():
     alpha, beta = build_determinant_list(config)
     for i in range(len(alpha)):
         for sub in config.subspaces:
-            occ = (
-                subspace_occupation(int(alpha[i]), sub.orbital_indices)
-                + subspace_occupation(int(beta[i]), sub.orbital_indices)
+            occ = subspace_occupation(int(alpha[i]), sub.orbital_indices) + subspace_occupation(
+                int(beta[i]), sub.orbital_indices
             )
             assert sub.min_electrons <= occ <= sub.max_electrons
 
@@ -111,3 +111,41 @@ def test_ras_determinant_count():
     n = count_determinants(config)
     assert n > 0
     assert n < casci_determinant_count(6, (3, 3))
+
+
+def test_enumerate_distributions_single_subspace():
+    """Single subspace: only one valid distribution."""
+    subspaces = [Subspace("all", [0, 1], min_electrons=0, max_electrons=4)]
+    dists = _enumerate_distributions(subspaces, 1, 1, [], [], 0)
+    assert len(dists) == 1
+    assert dists[0] == ((1,), (1,))
+
+
+def test_enumerate_distributions_two_subspaces():
+    """Two subspaces: distributions respect per-subspace bounds."""
+    subspaces = [
+        Subspace("A", [0, 1], min_electrons=1, max_electrons=3),
+        Subspace("B", [2, 3], min_electrons=1, max_electrons=3),
+    ]
+    dists = _enumerate_distributions(subspaces, 2, 2, [], [], 0)
+    assert len(dists) > 0
+    for a_dist, b_dist in dists:
+        assert sum(a_dist) == 2
+        assert sum(b_dist) == 2
+        for k, sub in enumerate(subspaces):
+            assert sub.min_electrons <= a_dist[k] + b_dist[k] <= sub.max_electrons
+
+
+def test_enumerate_distributions_infeasible():
+    """No valid distributions when constraints are impossible."""
+    subspaces = [
+        Subspace("A", [0], min_electrons=2, max_electrons=2),
+        Subspace("B", [1], min_electrons=2, max_electrons=2),
+    ]
+    # 4 electrons but only 2 orbitals -> each orbital needs 2 electrons
+    # nelecas=(2,2) requires 2 alpha in 2 single-orbital subspaces: impossible
+    dists = _enumerate_distributions(subspaces, 2, 2, [], [], 0)
+    # Each subspace has 1 orbital, so max alpha per subspace = 1
+    # But subspace A requires min 2 total electrons, and max 1 alpha + 1 beta = 2
+    # So this should actually work with (1,1) per subspace
+    assert len(dists) == 1

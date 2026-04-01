@@ -74,5 +74,5 @@ html_short_title = "ORMAS-CI"
 # Exclude patterns
 exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 
-# Master document
-master_doc = "index"
+# Root document (renamed from master_doc in Sphinx 4.0)
+root_doc = "index"

@@ -25,8 +25,8 @@ from pathlib import Path
 
 import numpy as np
 import scipy.sparse as sp
-from pyscf import gto, mcscf, scf
 
+from pyscf import gto, mcscf, scf
 from pyscf.ormas_ci import ORMASConfig, ORMASFCISolver, Subspace, build_determinant_list
 from pyscf.ormas_ci.determinants import casci_determinant_count
 from pyscf.ormas_ci.hamiltonian import build_ci_hamiltonian

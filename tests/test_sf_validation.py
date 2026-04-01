@@ -5,12 +5,15 @@ in test_sf_integration.py, covering dissociation curves, excited states,
 and larger active spaces.
 """
 
+import pytest
+
 from pyscf import gto, mcscf, scf
 from pyscf.ormas_ci import SFORMASConfig, SFORMASFCISolver, Subspace
 
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+
 
 def _build_h2(distance: float) -> tuple:
     """Build H2 molecule at given bond length and return (mol, mf_rohf).
@@ -141,6 +144,8 @@ def _spin_quantum_number(ss: float) -> float:
 # H2 Tests
 # ---------------------------------------------------------------------------
 
+
+@pytest.mark.slow
 class TestH2Dissociation:
     """Tests for SF-ORMAS on H2 dissociation curve."""
 
@@ -164,8 +169,7 @@ class TestH2Dissociation:
             e_sf = mc_sf.kernel()[0]
 
             assert abs(e_sf - e_ref) < 1e-10, (
-                f"H2 at {d} A: SF-ORMAS={e_sf}, CASCI={e_ref}, "
-                f"diff={abs(e_sf - e_ref)}"
+                f"H2 at {d} A: SF-ORMAS={e_sf}, CASCI={e_ref}, diff={abs(e_sf - e_ref)}"
             )
 
     def test_sf_h2_singlet_below_triplet_at_equilibrium(self) -> None:
@@ -193,8 +197,7 @@ class TestH2Dissociation:
         assert singlet_energy is not None, "No singlet root found"
         assert triplet_energy is not None, "No triplet root found"
         assert singlet_energy < triplet_energy, (
-            f"Singlet ({singlet_energy}) should be below triplet "
-            f"({triplet_energy}) at equilibrium"
+            f"Singlet ({singlet_energy}) should be below triplet ({triplet_energy}) at equilibrium"
         )
 
 
@@ -202,6 +205,8 @@ class TestH2Dissociation:
 # Ethylene Tests
 # ---------------------------------------------------------------------------
 
+
+@pytest.mark.slow
 class TestEthylene:
     """Tests for SF-ORMAS on twisted ethylene."""
 
@@ -260,6 +265,8 @@ class TestEthylene:
 # TMM Tests
 # ---------------------------------------------------------------------------
 
+
+@pytest.mark.slow
 class TestTMM:
     """Tests for SF-ORMAS on trimethylenemethane."""
 
@@ -280,8 +287,7 @@ class TestTMM:
         e_sf = mc_sf.kernel()[0]
 
         assert abs(e_sf - e_ref) < 1e-10, (
-            f"TMM: SF-ORMAS={e_sf}, CASCI={e_ref}, "
-            f"diff={abs(e_sf - e_ref)}"
+            f"TMM: SF-ORMAS={e_sf}, CASCI={e_ref}, diff={abs(e_sf - e_ref)}"
         )
 
     def test_sf_tmm_spin_purity(self) -> None:
@@ -299,6 +305,5 @@ class TestTMM:
             ss, _mult = mc.fcisolver.spin_square(mc.ci[i], 4, (2, 2))
             s_val = _spin_quantum_number(ss)
             assert abs(s_val - round(s_val)) < 1e-6, (
-                f"Root {i}: S={s_val:.6f} is not a spin eigenstate "
-                f"(<S^2>={ss:.6f})"
+                f"Root {i}: S={s_val:.6f} is not a spin eigenstate (<S^2>={ss:.6f})"
             )

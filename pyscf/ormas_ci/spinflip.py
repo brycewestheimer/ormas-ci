@@ -91,18 +91,20 @@ def validate_reference_consistency(
     # Identify singly-occupied reference orbitals if occupation provided
     ref_singly_occ: list[int] = []
     if active_mo_occ is not None:
-        ref_singly_occ = [
-            i for i, occ in enumerate(active_mo_occ) if abs(occ - 1.0) < 0.1
-        ]
+        ref_singly_occ = [i for i, occ in enumerate(active_mo_occ) if abs(occ - 1.0) < 0.1]
+
+        if not ref_singly_occ and sf_config.n_spin_flips > 0:
+            warnings.append(
+                f"No singly-occupied orbitals found in active_mo_occ, "
+                f"but n_spin_flips={sf_config.n_spin_flips}. "
+                f"The spin-flip expansion may not contain the "
+                f"physically relevant configurations."
+            )
 
         # Check: singly occupied orbitals should be in the SF-CAS subspace
         if sf_cas_subspace_idx is not None:
-            sf_cas_indices = set(
-                sf_config.subspaces[sf_cas_subspace_idx].orbital_indices
-            )
-            misplaced = [
-                i for i in ref_singly_occ if i not in sf_cas_indices
-            ]
+            sf_cas_indices = set(sf_config.subspaces[sf_cas_subspace_idx].orbital_indices)
+            misplaced = [i for i in ref_singly_occ if i not in sf_cas_indices]
             if misplaced:
                 warnings.append(
                     f"Singly-occupied reference orbitals {misplaced} "

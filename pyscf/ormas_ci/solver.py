@@ -5,6 +5,8 @@ Uses numpy.linalg.eigh for dense matrices and scipy.sparse.linalg.eigsh
 (Lanczos) for sparse matrices. Returns eigenvalues sorted ascending.
 """
 
+import warnings
+
 import numpy as np
 import scipy.sparse as sp
 import scipy.sparse.linalg as spla
@@ -40,7 +42,7 @@ def solve_ci(
         # requesting many roots, fall back to dense numpy.linalg.eigh
         # which has no such restriction.
         if n_roots >= n_det - 1:
-            hamiltonian = hamiltonian.toarray()  # type: ignore[union-attr]
+            hamiltonian = hamiltonian.toarray()  # type: ignore[union-attr]  # narrowed by issparse()
         else:
             v0 = None
             if ci0 is not None:
@@ -51,12 +53,18 @@ def solve_ci(
                 k=n_roots,
                 which="SA",
                 v0=v0,
-                tol=tol,  # type: ignore[arg-type]
+                tol=tol,  # type: ignore[arg-type]  # scipy stub types float vs Optional
                 maxiter=max_iter,
             )
             idx = np.argsort(energies)
             return energies[idx], vectors[:, idx]
 
     # Dense diagonalization
-    energies, vectors = np.linalg.eigh(hamiltonian)  # type: ignore[arg-type]
+    energies, vectors = np.linalg.eigh(hamiltonian)  # type: ignore[arg-type]  # may be spmatrix after branch
+    if n_roots > len(energies):
+        warnings.warn(
+            f"Requested {n_roots} roots but only {len(energies)} determinants "
+            f"exist. Returning {len(energies)} roots.",
+            stacklevel=2,
+        )
     return energies[:n_roots], vectors[:, :n_roots]

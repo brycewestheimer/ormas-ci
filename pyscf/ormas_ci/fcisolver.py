@@ -68,7 +68,11 @@ def _make_hdiag_vectorized(
     uses numpy advanced indexing to sum contributions for each determinant.
     """
     n_det = len(alpha_strings)
+    if h1e.ndim != 2 or h1e.shape[0] != h1e.shape[1]:
+        raise ValueError(f"h1e must be a square 2D array, got shape {h1e.shape}")
     norb = h1e.shape[0]
+    if h2e.ndim != 4 or h2e.shape != (norb, norb, norb, norb):
+        raise ValueError(f"h2e must have shape ({norb}, {norb}, {norb}, {norb}), got {h2e.shape}")
 
     # Precompute J and K arrays: jdiag[p,q] = (pp|qq), kdiag[p,q] = (pq|qp)
     jdiag = np.zeros((norb, norb))
@@ -139,6 +143,10 @@ def _transform_ci(
         ua = ub = u
     else:
         ua, ub = u
+    if ua.shape != (ncas, ncas):
+        raise ValueError(f"Alpha rotation matrix must be ({ncas}, {ncas}), got {ua.shape}")
+    if ub.shape != (ncas, ncas):
+        raise ValueError(f"Beta rotation matrix must be ({ncas}, {ncas}), got {ub.shape}")
 
     # Get unique alpha and beta strings
     unique_alpha = np.unique(alpha_strings)
@@ -366,27 +374,25 @@ class ORMASFCISolver(lib.StreamObject):
 
         a_map = {int(v): i for i, v in enumerate(unique_a)}
         b_map = {int(v): i for i, v in enumerate(unique_b)}
-        self._sci_det_row = np.array(
-            [a_map[int(s)] for s in self._alpha_strings]
-        )
-        self._sci_det_col = np.array(
-            [b_map[int(s)] for s in self._beta_strings]
-        )
+        self._sci_det_row = np.array([a_map[int(s)] for s in self._alpha_strings])
+        self._sci_det_col = np.array([b_map[int(s)] for s in self._beta_strings])
 
     def _build_sci_link_tables(self, ncas, nelecas):
         """Generate PySCF C-level link tables for the determinant string space."""
         ci_strs = (self._sci_unique_alpha, self._sci_unique_beta)
-        self._sci_link_index = _selected_ci._all_linkstr_index(
-            ci_strs, ncas, nelecas
-        )
+        self._sci_link_index = _selected_ci._all_linkstr_index(ci_strs, ncas, nelecas)
 
     def _ci_1d_to_2d(self, ci_1d):
         """Scatter ORMAS 1D CI vector into selected_ci 2D matrix."""
         assert self._sci_unique_alpha is not None
         assert self._sci_unique_beta is not None
-        ci_2d = np.zeros(
-            (len(self._sci_unique_alpha), len(self._sci_unique_beta))
-        )
+        assert self._sci_det_row is not None
+        if len(ci_1d) != len(self._sci_det_row):
+            raise ValueError(
+                f"CI vector length ({len(ci_1d)}) does not match "
+                f"determinant count ({len(self._sci_det_row)})"
+            )
+        ci_2d = np.zeros((len(self._sci_unique_alpha), len(self._sci_unique_beta)))
         ci_2d[self._sci_det_row, self._sci_det_col] = ci_1d
         return ci_2d
 
@@ -406,7 +412,10 @@ class ORMASFCISolver(lib.StreamObject):
         """Compute H @ ci using PySCF's C-level selected_ci sigma vector."""
         civec = self._as_sci_vector(ci_1d)
         sigma_2d = _selected_ci.contract_2e(
-            self._sci_eri_absorbed, civec, self.norb, self.nelec,
+            self._sci_eri_absorbed,
+            civec,
+            self.norb,
+            self.nelec,
             link_index=self._sci_link_index,
         )
         return self._ci_2d_to_1d(sigma_2d)
@@ -417,9 +426,7 @@ class ORMASFCISolver(lib.StreamObject):
         assert self._sci_unique_beta is not None
         ci_strs = (self._sci_unique_alpha, self._sci_unique_beta)
         hdiag_flat = _selected_ci.make_hdiag(h1e, eri, ci_strs, ncas, nelecas)
-        hdiag_2d = hdiag_flat.reshape(
-            len(self._sci_unique_alpha), len(self._sci_unique_beta)
-        )
+        hdiag_2d = hdiag_flat.reshape(len(self._sci_unique_alpha), len(self._sci_unique_beta))
         return hdiag_2d[self._sci_det_row, self._sci_det_col]
 
     @property
@@ -439,33 +446,38 @@ class ORMASFCISolver(lib.StreamObject):
         assert self._sci_unique_beta is not None
         n_ua = len(self._sci_unique_alpha)
         n_ub = len(self._sci_unique_beta)
-        use_einsum = (
-            max(n_ua, n_ub) <= self.einsum_string_threshold
-        )
+        use_einsum = max(n_ua, n_ub) <= self.einsum_string_threshold
 
         if use_einsum:
             return self._solve_davidson_einsum(
-                h1e, eri, ncas, nelecas, n_det, n_ua, n_ub,
+                h1e,
+                eri,
+                ncas,
+                nelecas,
+                n_det,
+                n_ua,
+                n_ub,
             )
         else:
             return self._solve_eigsh_sci(
-                h1e, eri, ncas, nelecas, n_det,
+                h1e,
+                eri,
+                ncas,
+                nelecas,
+                n_det,
             )
 
-    def _solve_davidson_einsum(self, h1e, eri, ncas, nelecas, n_det,
-                               n_ua, n_ub):
+    def _solve_davidson_einsum(self, h1e, eri, ncas, nelecas, n_det, n_ua, n_ub):
         """Davidson eigensolver with pure-Python einsum sigma vector."""
-        logger.info(
-            f"  Using Davidson + einsum sigma "
-            f"({n_ua} alpha, {n_ub} beta unique strings)"
-        )
+        logger.info(f"  Using Davidson + einsum sigma ({n_ua} alpha, {n_ub} beta unique strings)")
         self._sigma_einsum = SigmaEinsum(
-            self._sci_unique_alpha, self._sci_unique_beta,
-            h1e, eri, nelec=nelecas,
+            self._sci_unique_alpha,
+            self._sci_unique_beta,
+            h1e,
+            eri,
+            nelec=nelecas,
         )
-        logger.info(
-            f"  Einsum memory: {self._sigma_einsum.memory_estimate_mb():.1f} MB"
-        )
+        logger.info(f"  Einsum memory: {self._sigma_einsum.memory_estimate_mb():.1f} MB")
 
         # Diagonal elements for preconditioner
         hdiag_1d = self._make_hdiag_sci(h1e, eri, ncas, nelecas)
@@ -475,7 +487,7 @@ class ORMASFCISolver(lib.StreamObject):
             v0 = np.zeros(n_det)
             v0[np.argmin(hdiag_1d)] = 1.0
         else:
-            idx = np.argsort(hdiag_1d)[:self.nroots]
+            idx = np.argsort(hdiag_1d)[: self.nroots]
             v0 = np.zeros((n_det, self.nroots))
             for k, i in enumerate(idx):
                 v0[i, k] = 1.0
@@ -489,7 +501,9 @@ class ORMASFCISolver(lib.StreamObject):
             return self._ci_2d_to_1d(sigma_2d)
 
         def precond(r, e):
-            return r / (hdiag_1d - e + self.level_shift)
+            denom = hdiag_1d - e + self.level_shift
+            denom = np.where(np.abs(denom) < 1e-8, 1e-8, denom)
+            return r / denom
 
         energies, ci_vectors, conv_flags = davidson(
             aop=sigma_1d,
@@ -501,7 +515,7 @@ class ORMASFCISolver(lib.StreamObject):
             nroots=self.nroots,
             lindep=self.lindep,
         )
-        return energies, ci_vectors, all(conv_flags[:self.nroots])
+        return energies, ci_vectors, all(conv_flags[: self.nroots])
 
     def _solve_eigsh_sci(self, h1e, eri, ncas, nelecas, n_det):
         """ARPACK eigsh with PySCF selected_ci sigma vector (fallback)."""
@@ -516,10 +530,14 @@ class ORMASFCISolver(lib.StreamObject):
             dtype=np.float64,
         )
         from scipy.sparse.linalg import ArpackNoConvergence
+
         try:
             energies, ci_vectors = eigsh(
-                h_op, k=self.nroots, which='SA',
-                v0=v0, tol=self.conv_tol,  # type: ignore[arg-type]
+                h_op,
+                k=self.nroots,
+                which="SA",
+                v0=v0,
+                tol=self.conv_tol,  # type: ignore[arg-type]
             )
             converged = True
         except ArpackNoConvergence as e:
@@ -624,27 +642,33 @@ class ORMASFCISolver(lib.StreamObject):
         self._build_sci_mapping()
         self._build_sci_link_tables(ncas, nelecas)
         self._sci_eri_absorbed = _direct_spin1.absorb_h1e(
-            h1e, eri, ncas, sum(nelecas), fac=0.5,  # pyright: ignore[reportArgumentType]
+            h1e,
+            eri,
+            ncas,
+            sum(nelecas),
+            fac=0.5,  # pyright: ignore[reportArgumentType]
         )
 
         if n_det > self.direct_ci_threshold:
             if self.nroots >= n_det:
                 # Fall back to explicit Hamiltonian for full diagonalization
-                h_ci = build_ci_hamiltonian(
-                    alpha_strings, beta_strings, h1e, eri
-                )
+                h_ci = build_ci_hamiltonian(alpha_strings, beta_strings, h1e, eri)
                 self._h_ci_cached = h_ci
                 energies, ci_vectors = solve_ci(h_ci, n_roots=self.nroots)
                 self.converged = True  # dense eigh is exact
             else:
                 energies, ci_vectors, self.converged = self._solve_iterative(
-                    h1e, eri, ncas, nelecas, n_det,
+                    h1e,
+                    eri,
+                    ncas,
+                    nelecas,
+                    n_det,
                 )
                 if not self.converged:
                     logger.warning(
-                        "ORMAS-CI iterative solver did not converge "
-                        "(tol=%.1e, max_cycle=%d)",
-                        self.conv_tol, self.max_cycle,
+                        "ORMAS-CI iterative solver did not converge (tol=%.1e, max_cycle=%d)",
+                        self.conv_tol,
+                        self.max_cycle,
                     )
         else:
             # Explicit Hamiltonian path for small determinant spaces
@@ -656,6 +680,14 @@ class ORMASFCISolver(lib.StreamObject):
         # Number of roots actually found (may be less than nroots if
         # nroots >= n_det and full diagonalization was used).
         n_roots_found = len(energies)
+        if n_roots_found < self.nroots:
+            logger.warning(
+                "Requested %d roots but only %d found (n_det=%d). Returning %d roots.",
+                self.nroots,
+                n_roots_found,
+                n_det,
+                n_roots_found,
+            )
 
         if self.nroots == 1:
             e_ci = float(energies[0])
@@ -702,9 +734,7 @@ class ORMASFCISolver(lib.StreamObject):
             nelecas = self._normalize_nelecas(nelecas)
             civec = self._as_sci_vector(ci_vector)
             return _selected_ci.make_rdm1(civec, ncas, nelecas)
-        return _make_rdm1(
-            ci_vector, self._alpha_strings, self._beta_strings, ncas
-        )
+        return _make_rdm1(ci_vector, self._alpha_strings, self._beta_strings, ncas)
 
     def make_rdm1s(
         self,
@@ -726,17 +756,13 @@ class ORMASFCISolver(lib.StreamObject):
             RuntimeError: If kernel() has not been called yet.
         """
         if self._alpha_strings is None:
-            raise RuntimeError(
-                "kernel() must be called before make_rdm1s()."
-            )
+            raise RuntimeError("kernel() must be called before make_rdm1s().")
         assert self._beta_strings is not None
         if self._use_sci:
             nelecas = self._normalize_nelecas(nelecas)
             civec = self._as_sci_vector(ci_vector)
             return _selected_ci.make_rdm1s(civec, ncas, nelecas)
-        return _make_rdm1s(
-            ci_vector, self._alpha_strings, self._beta_strings, ncas
-        )
+        return _make_rdm1s(ci_vector, self._alpha_strings, self._beta_strings, ncas)
 
     def make_rdm12(
         self,
@@ -767,9 +793,7 @@ class ORMASFCISolver(lib.StreamObject):
             RuntimeError: If kernel() has not been called yet.
         """
         if self._alpha_strings is None:
-            raise RuntimeError(
-                "kernel() must be called before make_rdm12()."
-            )
+            raise RuntimeError("kernel() must be called before make_rdm12().")
         assert self._beta_strings is not None
         if self._use_sci:
             nelecas = self._normalize_nelecas(nelecas)
@@ -777,9 +801,7 @@ class ORMASFCISolver(lib.StreamObject):
             rdm1 = _selected_ci.make_rdm1(civec, ncas, nelecas)
             rdm2 = _selected_ci.make_rdm2(civec, ncas, nelecas)
             return rdm1, rdm2
-        return _make_rdm12(
-            ci_vector, self._alpha_strings, self._beta_strings, ncas
-        )
+        return _make_rdm12(ci_vector, self._alpha_strings, self._beta_strings, ncas)
 
     def make_rdm12s(
         self,
@@ -801,9 +823,7 @@ class ORMASFCISolver(lib.StreamObject):
             RuntimeError: If kernel() has not been called yet.
         """
         if self._alpha_strings is None:
-            raise RuntimeError(
-                "kernel() must be called before make_rdm12s()."
-            )
+            raise RuntimeError("kernel() must be called before make_rdm12s().")
         assert self._beta_strings is not None
         if self._use_sci:
             nelecas = self._normalize_nelecas(nelecas)
@@ -811,9 +831,7 @@ class ORMASFCISolver(lib.StreamObject):
             rdm1s = _selected_ci.make_rdm1s(civec, ncas, nelecas)
             rdm2s = _selected_ci.make_rdm2s(civec, ncas, nelecas)
             return rdm1s, rdm2s
-        return _make_rdm12s(
-            ci_vector, self._alpha_strings, self._beta_strings, ncas
-        )
+        return _make_rdm12s(ci_vector, self._alpha_strings, self._beta_strings, ncas)
 
     def spin_square(
         self,
@@ -903,9 +921,7 @@ class ORMASFCISolver(lib.StreamObject):
                 "kernel() must be called before transform_ci_for_orbital_rotation()."
             )
         assert self._beta_strings is not None
-        return _transform_ci(
-            ci_vector, self._alpha_strings, self._beta_strings, ncas, u
-        )
+        return _transform_ci(ci_vector, self._alpha_strings, self._beta_strings, ncas, u)
 
     def large_ci(
         self,
@@ -932,9 +948,7 @@ class ORMASFCISolver(lib.StreamObject):
             sorted by descending absolute coefficient value.
         """
         if self._alpha_strings is None:
-            raise RuntimeError(
-                "kernel() must be called before large_ci()."
-            )
+            raise RuntimeError("kernel() must be called before large_ci().")
         assert self._beta_strings is not None
         result = []
         for k in range(len(ci_vector)):
@@ -946,11 +960,13 @@ class ORMASFCISolver(lib.StreamObject):
                 else:
                     from pyscf.ormas_ci.utils import bits_to_indices
 
-                    result.append((
-                        ci_vector[k],
-                        list(bits_to_indices(ai)),
-                        list(bits_to_indices(bi)),
-                    ))
+                    result.append(
+                        (
+                            ci_vector[k],
+                            list(bits_to_indices(ai)),
+                            list(bits_to_indices(bi)),
+                        )
+                    )
         # Sort by descending absolute coefficient
         result.sort(key=lambda x: -abs(x[0]))
         if not result:
@@ -963,11 +979,13 @@ class ORMASFCISolver(lib.StreamObject):
             else:
                 from pyscf.ormas_ci.utils import bits_to_indices
 
-                result = [(
-                    ci_vector[k_max],
-                    list(bits_to_indices(ai)),
-                    list(bits_to_indices(bi)),
-                )]
+                result = [
+                    (
+                        ci_vector[k_max],
+                        list(bits_to_indices(ai)),
+                        list(bits_to_indices(bi)),
+                    )
+                ]
         return result
 
     def absorb_h1e(
@@ -1003,7 +1021,7 @@ class ORMASFCISolver(lib.StreamObject):
         if not isinstance(nelecas, (int, np.integer)):
             nelecas = sum(nelecas)
         h2e = ao2mo.restore(1, eri.copy(), ncas)
-        f1e = h1e - np.einsum('jiik->jk', h2e) * 0.5
+        f1e = h1e - np.einsum("jiik->jk", h2e) * 0.5
         f1e = f1e * (1.0 / (nelecas + 1e-100))
         for k in range(ncas):
             h2e[k, k, :, :] += f1e
@@ -1038,9 +1056,7 @@ class ORMASFCISolver(lib.StreamObject):
             *ci_vector*.
         """
         if self._alpha_strings is None:
-            raise RuntimeError(
-                "kernel() must be called before contract_2e()."
-            )
+            raise RuntimeError("kernel() must be called before contract_2e().")
         assert self._beta_strings is not None
         if self._use_sci:
             return self._sigma_sci(ci_vector)
@@ -1140,7 +1156,7 @@ class ORMASFCISolver(lib.StreamObject):
         addr = np.argsort(hdiag)[:np_]
 
         h_ci = self._get_or_build_hamiltonian(h1e, eri, norb)
-        if hasattr(h_ci, 'toarray'):
+        if hasattr(h_ci, "toarray"):
             h_ci = h_ci.toarray()  # type: ignore[union-attr]
         h_sub = h_ci[np.ix_(addr, addr)]
         return h_sub, addr
@@ -1266,14 +1282,14 @@ class ORMASFCISolver(lib.StreamObject):
             verbose: Verbosity level. If None, uses self.verbose.
         """
         log = logging.getLogger(__name__)
-        log.info('ORMAS-CI FCI solver')
-        log.info('nroots = %d', self.nroots)
-        log.info('conv_tol = %g', self.conv_tol)
-        log.info('max_cycle = %d', self.max_cycle)
-        log.info('Number of subspaces: %d', self.config.n_subspaces)
+        log.info("ORMAS-CI FCI solver")
+        log.info("nroots = %d", self.nroots)
+        log.info("conv_tol = %g", self.conv_tol)
+        log.info("max_cycle = %d", self.max_cycle)
+        log.info("Number of subspaces: %d", self.config.n_subspaces)
         for sub in self.config.subspaces:
             log.info(
-                '  %s: orbitals %s, electrons [%d, %d]',
+                "  %s: orbitals %s, electrons [%d, %d]",
                 sub.name,
                 sub.orbital_indices,
                 sub.min_electrons,
@@ -1368,6 +1384,4 @@ class SFORMASFCISolver(ORMASFCISolver):
             )
 
         # Delegate to standard ORMAS-CI kernel
-        return super().kernel(
-            h1e, eri, ncas, nelecas, ci0=ci0, ecore=ecore, **kwargs
-        )
+        return super().kernel(h1e, eri, ncas, nelecas, ci0=ci0, ecore=ecore, **kwargs)

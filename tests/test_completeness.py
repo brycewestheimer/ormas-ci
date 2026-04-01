@@ -69,9 +69,7 @@ def test_transform_ci_before_kernel():
     """transform_ci raises RuntimeError if kernel() not called."""
     solver = _fresh_solver()
     with pytest.raises(RuntimeError, match="kernel"):
-        solver.transform_ci_for_orbital_rotation(
-            np.zeros(4), 2, (1, 1), np.eye(2)
-        )
+        solver.transform_ci_for_orbital_rotation(np.zeros(4), 2, (1, 1), np.eye(2))
 
 
 def test_large_ci_before_kernel():
@@ -95,9 +93,7 @@ def test_contract_2e_before_kernel():
 
 def _h2_mf():
     """H2 / 6-31G RHF, return (mf, ncas, nelecas_tuple)."""
-    mol = gto.M(
-        atom="H 0 0 0; H 0 0 0.74", basis="6-31g", verbose=0
-    )
+    mol = gto.M(atom="H 0 0 0; H 0 0 0.74", basis="6-31g", verbose=0)
     mf = scf.RHF(mol)
     mf.verbose = 0
     mf.run()
@@ -223,17 +219,11 @@ def test_large_ci_return_strs_false():
     mc.verbose = 0
     mc.fcisolver = ORMASFCISolver(config)
     mc.kernel()
-    result = mc.fcisolver.large_ci(
-        mc.ci, ncas, nelecas, tol=0.1, return_strs=False
-    )
+    result = mc.fcisolver.large_ci(mc.ci, ncas, nelecas, tol=0.1, return_strs=False)
     assert len(result) >= 1
     for coeff, a_occ, b_occ in result:
-        assert isinstance(a_occ, list), (
-            f"Expected list, got {type(a_occ)}"
-        )
-        assert isinstance(b_occ, list), (
-            f"Expected list, got {type(b_occ)}"
-        )
+        assert isinstance(a_occ, list), f"Expected list, got {type(a_occ)}"
+        assert isinstance(b_occ, list), f"Expected list, got {type(b_occ)}"
         assert all(isinstance(x, int) for x in a_occ)
         assert all(isinstance(x, int) for x in b_occ)
 
@@ -252,14 +242,10 @@ def test_large_ci_fallback_high_tol():
     mc.kernel()
     # tol=999 so no coefficient exceeds it
     result = mc.fcisolver.large_ci(mc.ci, ncas, nelecas, tol=999.0)
-    assert len(result) == 1, (
-        f"Fallback should return exactly 1 entry, got {len(result)}"
-    )
+    assert len(result) == 1, f"Fallback should return exactly 1 entry, got {len(result)}"
     coeff, a_str, b_str = result[0]
     # Should be the largest-magnitude coefficient
-    assert abs(coeff) == pytest.approx(
-        np.max(np.abs(mc.ci)), abs=1e-14
-    )
+    assert abs(coeff) == pytest.approx(np.max(np.abs(mc.ci)), abs=1e-14)
 
 
 def test_large_ci_fallback_return_strs_false():
@@ -274,9 +260,7 @@ def test_large_ci_fallback_return_strs_false():
     mc.verbose = 0
     mc.fcisolver = ORMASFCISolver(config)
     mc.kernel()
-    result = mc.fcisolver.large_ci(
-        mc.ci, ncas, nelecas, tol=999.0, return_strs=False
-    )
+    result = mc.fcisolver.large_ci(mc.ci, ncas, nelecas, tol=999.0, return_strs=False)
     assert len(result) == 1
     coeff, a_occ, b_occ = result[0]
     assert isinstance(a_occ, list)
@@ -303,15 +287,10 @@ def test_transform_ci_spin_dependent_rotation():
     rng = np.random.default_rng(42)
     ua = np.linalg.qr(rng.standard_normal((ncas, ncas)))[0]
     ub = np.linalg.qr(rng.standard_normal((ncas, ncas)))[0]
-    ci_rot = mc.fcisolver.transform_ci_for_orbital_rotation(
-        mc.ci, ncas, nelecas, (ua, ub)
-    )
-    ci_back = mc.fcisolver.transform_ci_for_orbital_rotation(
-        ci_rot, ncas, nelecas, (ua.T, ub.T)
-    )
+    ci_rot = mc.fcisolver.transform_ci_for_orbital_rotation(mc.ci, ncas, nelecas, (ua, ub))
+    ci_back = mc.fcisolver.transform_ci_for_orbital_rotation(ci_rot, ncas, nelecas, (ua.T, ub.T))
     assert np.allclose(ci_back, mc.ci, atol=1e-10), (
-        f"Spin-dependent roundtrip failed, "
-        f"max |diff| = {np.max(np.abs(ci_back - mc.ci))}"
+        f"Spin-dependent roundtrip failed, max |diff| = {np.max(np.abs(ci_back - mc.ci))}"
     )
 
 
@@ -331,40 +310,28 @@ def test_transform_ci_energy_invariance():
     h2e = ao2mo.restore(1, mc.get_h2eff(), ncas)
 
     # Original energy via RDMs
-    rdm1_orig, rdm2_orig = mc.fcisolver.make_rdm12(
-        mc.ci, ncas, nelecas
-    )
+    rdm1_orig, rdm2_orig = mc.fcisolver.make_rdm12(mc.ci, ncas, nelecas)
     e_orig = (
-        np.einsum("pq,qp", h1e, rdm1_orig)
-        + 0.5 * np.einsum("pqrs,pqrs", h2e, rdm2_orig)
-        + ecore
+        np.einsum("pq,qp", h1e, rdm1_orig) + 0.5 * np.einsum("pqrs,pqrs", h2e, rdm2_orig) + ecore
     )
 
     # Random unitary rotation
     rng = np.random.default_rng(99)
     u = np.linalg.qr(rng.standard_normal((ncas, ncas)))[0]
-    ci_rot = mc.fcisolver.transform_ci_for_orbital_rotation(
-        mc.ci, ncas, nelecas, u
-    )
+    ci_rot = mc.fcisolver.transform_ci_for_orbital_rotation(mc.ci, ncas, nelecas, u)
 
     # Rotate integrals
     h1e_rot = u.T @ h1e @ u
-    h2e_rot = np.einsum(
-        "ip,jq,pqrs,rk,sl->ijkl", u, u, h2e, u, u
-    )
+    h2e_rot = np.einsum("ip,jq,pqrs,rk,sl->ijkl", u, u, h2e, u, u)
 
     # Compute energy from rotated H and rotated CI
     alpha_str, beta_str = build_determinant_list(config)
-    h_rot = build_ci_hamiltonian(
-        alpha_str, beta_str, h1e_rot, h2e_rot
-    )
+    h_rot = build_ci_hamiltonian(alpha_str, beta_str, h1e_rot, h2e_rot)
     if hasattr(h_rot, "toarray"):
         h_rot = h_rot.toarray()
     e_rot = ci_rot @ h_rot @ ci_rot + ecore
 
-    assert abs(e_orig - e_rot) < 1e-10, (
-        f"Energy not invariant: {e_orig} vs {e_rot}"
-    )
+    assert abs(e_orig - e_rot) < 1e-10, f"Energy not invariant: {e_orig} vs {e_rot}"
 
 
 # ------------------------------------------------------------------ #
@@ -372,6 +339,7 @@ def test_transform_ci_energy_invariance():
 # ------------------------------------------------------------------ #
 
 
+@pytest.mark.slow
 def test_rdm2_matches_pyscf_h2o():
     """Unrestricted ORMAS rdm2 matches PySCF FCI rdm2 on H2O."""
     mol = gto.M(
@@ -400,19 +368,16 @@ def test_rdm2_matches_pyscf_h2o():
 
     # PySCF FCI reference
     e_fci, ci_fci = fci.direct_spin1.kernel(h1e, h2e, ncas, nelecas)
-    rdm1_ref, rdm2_ref = fci.direct_spin1.make_rdm12(
-        ci_fci, ncas, nelecas
-    )
+    rdm1_ref, rdm2_ref = fci.direct_spin1.make_rdm12(ci_fci, ncas, nelecas)
     assert np.allclose(rdm1, rdm1_ref, atol=1e-10), (
-        f"H2O rdm1 mismatch, "
-        f"max |err| = {np.max(np.abs(rdm1 - rdm1_ref))}"
+        f"H2O rdm1 mismatch, max |err| = {np.max(np.abs(rdm1 - rdm1_ref))}"
     )
     assert np.allclose(rdm2, rdm2_ref, atol=1e-10), (
-        f"H2O rdm2 mismatch, "
-        f"max |err| = {np.max(np.abs(rdm2 - rdm2_ref))}"
+        f"H2O rdm2 mismatch, max |err| = {np.max(np.abs(rdm2 - rdm2_ref))}"
     )
 
 
+@pytest.mark.slow
 def test_rdm12s_open_shell_matches_pyscf():
     """CH2 triplet: spin-separated RDMs match PySCF FCI."""
     mol = gto.M(
@@ -438,22 +403,16 @@ def test_rdm12s_open_shell_matches_pyscf():
     mc.kernel()
     h1e, ecore = mc.get_h1eff()
     h2e = ao2mo.restore(1, mc.get_h2eff(), ncas)
-    rdm1_ours, rdm2_ours = mc.fcisolver.make_rdm12(
-        mc.ci, ncas, nelecas
-    )
+    rdm1_ours, rdm2_ours = mc.fcisolver.make_rdm12(mc.ci, ncas, nelecas)
 
     # PySCF FCI reference
     e_fci, ci_fci = fci.direct_spin1.kernel(h1e, h2e, ncas, nelecas)
-    rdm1_ref, rdm2_ref = fci.direct_spin1.make_rdm12(
-        ci_fci, ncas, nelecas
-    )
+    rdm1_ref, rdm2_ref = fci.direct_spin1.make_rdm12(ci_fci, ncas, nelecas)
     assert np.allclose(rdm1_ours, rdm1_ref, atol=1e-10), (
-        f"CH2 rdm1 mismatch, "
-        f"max |err| = {np.max(np.abs(rdm1_ours - rdm1_ref))}"
+        f"CH2 rdm1 mismatch, max |err| = {np.max(np.abs(rdm1_ours - rdm1_ref))}"
     )
     assert np.allclose(rdm2_ours, rdm2_ref, atol=1e-10), (
-        f"CH2 rdm2 mismatch, "
-        f"max |err| = {np.max(np.abs(rdm2_ours - rdm2_ref))}"
+        f"CH2 rdm2 mismatch, max |err| = {np.max(np.abs(rdm2_ours - rdm2_ref))}"
     )
 
 
@@ -462,11 +421,10 @@ def test_rdm12s_open_shell_matches_pyscf():
 # ------------------------------------------------------------------ #
 
 
+@pytest.mark.slow
 def test_rdm2_three_subspace_energy():
     """3-subspace ORMAS on N2: rdm2 energy matches kernel energy."""
-    mol = gto.M(
-        atom="N 0 0 0; N 0 0 1.09", basis="6-31g", verbose=0
-    )
+    mol = gto.M(atom="N 0 0 0; N 0 0 1.09", basis="6-31g", verbose=0)
     mf = scf.RHF(mol)
     mf.verbose = 0
     mf.run()
@@ -474,16 +432,22 @@ def test_rdm2_three_subspace_energy():
     config = ORMASConfig(
         subspaces=[
             Subspace(
-                "sigma", [0, 1],
-                min_electrons=1, max_electrons=4,
+                "sigma",
+                [0, 1],
+                min_electrons=1,
+                max_electrons=4,
             ),
             Subspace(
-                "pi", [2, 3],
-                min_electrons=1, max_electrons=4,
+                "pi",
+                [2, 3],
+                min_electrons=1,
+                max_electrons=4,
             ),
             Subspace(
-                "sigma_star", [4, 5],
-                min_electrons=0, max_electrons=4,
+                "sigma_star",
+                [4, 5],
+                min_electrons=0,
+                max_electrons=4,
             ),
         ],
         n_active_orbitals=ncas,
@@ -496,14 +460,9 @@ def test_rdm2_three_subspace_energy():
     h1e, ecore = mc.get_h1eff()
     h2e = ao2mo.restore(1, mc.get_h2eff(), ncas)
     rdm1, rdm2 = mc.fcisolver.make_rdm12(mc.ci, ncas, nelecas)
-    e_rdm = (
-        np.einsum("pq,qp", h1e, rdm1)
-        + 0.5 * np.einsum("pqrs,pqrs", h2e, rdm2)
-        + ecore
-    )
+    e_rdm = np.einsum("pq,qp", h1e, rdm1) + 0.5 * np.einsum("pqrs,pqrs", h2e, rdm2) + ecore
     assert abs(mc.e_tot - e_rdm) < 1e-10, (
-        f"3-subspace N2 energy mismatch: "
-        f"kernel={mc.e_tot}, rdm={e_rdm}"
+        f"3-subspace N2 energy mismatch: kernel={mc.e_tot}, rdm={e_rdm}"
     )
 
 
@@ -525,9 +484,7 @@ def test_rdm12_multi_root():
     mc1.verbose = 0
     mc1.fcisolver = ORMASFCISolver(config)
     mc1.kernel()
-    rdm1_ref, rdm2_ref = mc1.fcisolver.make_rdm12(
-        mc1.ci, ncas, nelecas
-    )
+    rdm1_ref, rdm2_ref = mc1.fcisolver.make_rdm12(mc1.ci, ncas, nelecas)
 
     # Multi-root, extract ground state
     config2 = ORMASConfig(
@@ -541,9 +498,7 @@ def test_rdm12_multi_root():
     mc2.fcisolver.nroots = 2
     mc2.kernel()
     civecs = mc2.ci
-    rdm1_mr, rdm2_mr = mc2.fcisolver.make_rdm12(
-        civecs[0], ncas, nelecas
-    )
+    rdm1_mr, rdm2_mr = mc2.fcisolver.make_rdm12(civecs[0], ncas, nelecas)
     assert np.allclose(rdm1_ref, rdm1_mr, atol=1e-10), (
         "Multi-root ground-state rdm1 != single-root rdm1"
     )
@@ -557,6 +512,7 @@ def test_rdm12_multi_root():
 # ------------------------------------------------------------------ #
 
 
+@pytest.mark.slow
 def test_casscf_restricted_ormas():
     """CASSCF with 2-subspace restricted ORMAS converges on H2O."""
     mol = gto.M(
@@ -580,6 +536,4 @@ def test_casscf_restricted_ormas():
     mc.verbose = 0
     mc.fcisolver = ORMASFCISolver(config)
     mc.kernel()
-    assert mc.e_tot < 0, (
-        f"CASSCF H2O energy should be negative, got {mc.e_tot}"
-    )
+    assert mc.e_tot < 0, f"CASSCF H2O energy should be negative, got {mc.e_tot}"

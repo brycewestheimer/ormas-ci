@@ -27,8 +27,8 @@ from dataclasses import asdict, dataclass, field
 from pathlib import Path
 
 import numpy as np
-from pyscf import gto, mcscf, scf
 
+from pyscf import gto, mcscf, scf
 from pyscf.ormas_ci import ORMASConfig, ORMASFCISolver, Subspace
 from pyscf.ormas_ci.determinants import casci_determinant_count
 from pyscf.ormas_ci.subspaces import RASConfig

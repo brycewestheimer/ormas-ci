@@ -27,6 +27,7 @@ class Subspace:
         min_electrons: Minimum total occupation (alpha + beta) allowed.
         max_electrons: Maximum total occupation (alpha + beta) allowed.
     """
+
     name: str
     orbital_indices: list[int]
     min_electrons: int
@@ -40,8 +41,7 @@ class Subspace:
         """Check internal consistency. Raises ValueError if invalid."""
         if self.min_electrons < 0:
             raise ValueError(
-                f"Subspace '{self.name}': min_electrons ({self.min_electrons}) "
-                f"cannot be negative"
+                f"Subspace '{self.name}': min_electrons ({self.min_electrons}) cannot be negative"
             )
         if self.max_electrons > 2 * self.n_orbitals:
             raise ValueError(
@@ -54,13 +54,9 @@ class Subspace:
                 f"> max_electrons ({self.max_electrons})"
             )
         if len(self.orbital_indices) != len(set(self.orbital_indices)):
-            raise ValueError(
-                f"Subspace '{self.name}': orbital_indices contains duplicates"
-            )
+            raise ValueError(f"Subspace '{self.name}': orbital_indices contains duplicates")
         if any(i < 0 for i in self.orbital_indices):
-            raise ValueError(
-                f"Subspace '{self.name}': orbital_indices contains negative values"
-            )
+            raise ValueError(f"Subspace '{self.name}': orbital_indices contains negative values")
 
 
 @dataclass
@@ -79,6 +75,7 @@ class ORMASConfig:
             of all subspace sizes.
         nelecas: Tuple of (n_alpha, n_beta) active electrons.
     """
+
     subspaces: list[Subspace]
     n_active_orbitals: int
     nelecas: tuple[int, int]
@@ -114,9 +111,7 @@ class ORMASConfig:
         for sub in self.subspaces:
             for idx in sub.orbital_indices:
                 if idx in all_indices:
-                    raise ValueError(
-                        f"Orbital index {idx} appears in multiple subspaces"
-                    )
+                    raise ValueError(f"Orbital index {idx} appears in multiple subspaces")
                 all_indices.append(idx)
 
         # Orbital indices must cover the full active space
@@ -172,6 +167,7 @@ class RASConfig:
         max_particles_ras3: Maximum number of particles (electrons) in RAS3.
         nelecas: Tuple of (n_alpha, n_beta) active electrons.
     """
+
     ras1_orbitals: list[int]
     ras2_orbitals: list[int]
     ras3_orbitals: list[int]
@@ -197,28 +193,34 @@ class RASConfig:
 
         if n_ras1 > 0:
             ras1_default = min(2 * n_ras1, n_total)
-            subspaces.append(Subspace(
-                name="RAS1",
-                orbital_indices=list(self.ras1_orbitals),
-                min_electrons=max(0, ras1_default - self.max_holes_ras1),
-                max_electrons=min(2 * n_ras1, n_total),
-            ))
+            subspaces.append(
+                Subspace(
+                    name="RAS1",
+                    orbital_indices=list(self.ras1_orbitals),
+                    min_electrons=max(0, ras1_default - self.max_holes_ras1),
+                    max_electrons=min(2 * n_ras1, n_total),
+                )
+            )
 
         if n_ras2 > 0:
-            subspaces.append(Subspace(
-                name="RAS2",
-                orbital_indices=list(self.ras2_orbitals),
-                min_electrons=0,
-                max_electrons=2 * n_ras2,
-            ))
+            subspaces.append(
+                Subspace(
+                    name="RAS2",
+                    orbital_indices=list(self.ras2_orbitals),
+                    min_electrons=0,
+                    max_electrons=2 * n_ras2,
+                )
+            )
 
         if n_ras3 > 0:
-            subspaces.append(Subspace(
-                name="RAS3",
-                orbital_indices=list(self.ras3_orbitals),
-                min_electrons=0,
-                max_electrons=min(self.max_particles_ras3, 2 * n_ras3),
-            ))
+            subspaces.append(
+                Subspace(
+                    name="RAS3",
+                    orbital_indices=list(self.ras3_orbitals),
+                    min_electrons=0,
+                    max_electrons=min(self.max_particles_ras3, 2 * n_ras3),
+                )
+            )
 
         n_active = n_ras1 + n_ras2 + n_ras3
 
@@ -263,13 +265,9 @@ class SFORMASConfig:
     def __post_init__(self) -> None:
         """Validate and compute derived quantities."""
         if self.ref_spin < 0:
-            raise ValueError(
-                f"ref_spin ({self.ref_spin}) must be non-negative."
-            )
+            raise ValueError(f"ref_spin ({self.ref_spin}) must be non-negative.")
         if self.target_spin < 0:
-            raise ValueError(
-                f"target_spin ({self.target_spin}) must be non-negative."
-            )
+            raise ValueError(f"target_spin ({self.target_spin}) must be non-negative.")
         if self.ref_spin < self.target_spin:
             raise ValueError(
                 f"ref_spin ({self.ref_spin}) must be >= target_spin "
@@ -324,11 +322,13 @@ class SFORMASConfig:
         as-is. The determinant enumeration then proceeds exactly as in
         standard ORMAS-CI, but in the target M_s sector.
         """
-        return ORMASConfig(
+        config = ORMASConfig(
             subspaces=self.subspaces,
             n_active_orbitals=self.n_active_orbitals,
             nelecas=self.nelecas_target,
         )
+        config.validate()
+        return config
 
     @staticmethod
     def single_sf_diradical(
@@ -362,27 +362,33 @@ class SFORMASConfig:
 
         if hole_orbitals:
             n_hole_elec = 2 * len(hole_orbitals)
-            subspaces.append(Subspace(
-                name="hole",
-                orbital_indices=hole_orbitals,
-                min_electrons=n_hole_elec - max_holes,
-                max_electrons=n_hole_elec,
-            ))
+            subspaces.append(
+                Subspace(
+                    name="hole",
+                    orbital_indices=hole_orbitals,
+                    min_electrons=n_hole_elec - max_holes,
+                    max_electrons=n_hole_elec,
+                )
+            )
 
-        subspaces.append(Subspace(
-            name="sf_cas",
-            orbital_indices=sf_cas_orbitals,
-            min_electrons=0,
-            max_electrons=2 * len(sf_cas_orbitals),
-        ))
+        subspaces.append(
+            Subspace(
+                name="sf_cas",
+                orbital_indices=sf_cas_orbitals,
+                min_electrons=0,
+                max_electrons=2 * len(sf_cas_orbitals),
+            )
+        )
 
         if particle_orbitals:
-            subspaces.append(Subspace(
-                name="particle",
-                orbital_indices=particle_orbitals,
-                min_electrons=0,
-                max_electrons=max_particles,
-            ))
+            subspaces.append(
+                Subspace(
+                    name="particle",
+                    orbital_indices=particle_orbitals,
+                    min_electrons=0,
+                    max_electrons=max_particles,
+                )
+            )
 
         return SFORMASConfig(
             ref_spin=2,
@@ -423,35 +429,39 @@ class SFRASConfig:
             )
         n_sf = (self.ref_spin - self.target_spin) // 2
         n_active_orbitals = (
-            len(self.ras1_orbitals)
-            + len(self.ras2_orbitals)
-            + len(self.ras3_orbitals)
+            len(self.ras1_orbitals) + len(self.ras2_orbitals) + len(self.ras3_orbitals)
         )
 
         subspaces = []
         if self.ras1_orbitals:
             n_ras1_elec = 2 * len(self.ras1_orbitals)
-            subspaces.append(Subspace(
-                name="RAS1",
-                orbital_indices=self.ras1_orbitals,
-                min_electrons=n_ras1_elec - self.max_holes_ras1,
-                max_electrons=n_ras1_elec,
-            ))
+            subspaces.append(
+                Subspace(
+                    name="RAS1",
+                    orbital_indices=self.ras1_orbitals,
+                    min_electrons=n_ras1_elec - self.max_holes_ras1,
+                    max_electrons=n_ras1_elec,
+                )
+            )
 
-        subspaces.append(Subspace(
-            name="RAS2_SF",
-            orbital_indices=self.ras2_orbitals,
-            min_electrons=0,
-            max_electrons=2 * len(self.ras2_orbitals),
-        ))
+        subspaces.append(
+            Subspace(
+                name="RAS2_SF",
+                orbital_indices=self.ras2_orbitals,
+                min_electrons=0,
+                max_electrons=2 * len(self.ras2_orbitals),
+            )
+        )
 
         if self.ras3_orbitals:
-            subspaces.append(Subspace(
-                name="RAS3",
-                orbital_indices=self.ras3_orbitals,
-                min_electrons=0,
-                max_electrons=self.max_particles_ras3,
-            ))
+            subspaces.append(
+                Subspace(
+                    name="RAS3",
+                    orbital_indices=self.ras3_orbitals,
+                    min_electrons=0,
+                    max_electrons=self.max_particles_ras3,
+                )
+            )
 
         return SFORMASConfig(
             ref_spin=self.ref_spin,

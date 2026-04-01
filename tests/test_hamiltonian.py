@@ -3,7 +3,7 @@
 import numpy as np
 
 from pyscf import ao2mo, fci, gto, mcscf, scf
-from pyscf.ormas_ci.hamiltonian import build_ci_hamiltonian
+from pyscf.ormas_ci.hamiltonian import _precompute_excitation_pairs, build_ci_hamiltonian
 from pyscf.ormas_ci.utils import generate_strings
 
 
@@ -66,9 +66,7 @@ def test_symmetry():
     else:
         h_dense = h_ci
 
-    assert np.allclose(h_dense, h_dense.T, atol=1e-14), (
-        "Hamiltonian is not symmetric"
-    )
+    assert np.allclose(h_dense, h_dense.T, atol=1e-14), "Hamiltonian is not symmetric"
 
 
 def test_sparse_dense_agree():
@@ -80,10 +78,18 @@ def test_sparse_dense_agree():
     alpha, beta, h1e, h2e, _ = _get_h2_setup()
 
     h_dense = build_ci_hamiltonian(
-        alpha, beta, h1e, h2e, sparse_threshold=999999,
+        alpha,
+        beta,
+        h1e,
+        h2e,
+        sparse_threshold=999999,
     )
     h_sparse = build_ci_hamiltonian(
-        alpha, beta, h1e, h2e, sparse_threshold=0,
+        alpha,
+        beta,
+        h1e,
+        h2e,
+        sparse_threshold=0,
     )
 
     # Convert sparse to dense for comparison
@@ -101,18 +107,47 @@ def test_hamiltonian_dimensions():
 
     n_det = len(alpha)
     if hasattr(h_ci, "shape"):
-        assert h_ci.shape == (n_det, n_det), (
-            f"Expected shape ({n_det}, {n_det}), got {h_ci.shape}"
-        )
+        assert h_ci.shape == (n_det, n_det), f"Expected shape ({n_det}, {n_det}), got {h_ci.shape}"
 
 
 def test_sparse_output_type():
     """When sparse_threshold=0, output should be a sparse matrix."""
     alpha, beta, h1e, h2e, _ = _get_h2_setup()
     h_ci = build_ci_hamiltonian(
-        alpha, beta, h1e, h2e, sparse_threshold=0,
+        alpha,
+        beta,
+        h1e,
+        h2e,
+        sparse_threshold=0,
     )
 
     import scipy.sparse as sp
 
     assert sp.issparse(h_ci), "Expected sparse matrix when sparse_threshold=0"
+
+
+def test_precompute_excitation_pairs_basic():
+    """Precomputed pairs only include <= 2 excitations."""
+    alpha = np.array([0b01, 0b10, 0b11], dtype=np.int64)
+    beta = np.array([0b01, 0b10, 0b11], dtype=np.int64)
+    rows, cols, nexc = _precompute_excitation_pairs(alpha, beta)
+    # All pairs must have <= 2 excitations
+    assert np.all(nexc <= 2)
+    # Upper triangle: rows <= cols
+    assert np.all(rows <= cols)
+    # Diagonal (0 excitations) must be present
+    pair_set = set(zip(rows.tolist(), cols.tolist()))
+    for i in range(3):
+        assert (i, i) in pair_set
+
+
+def test_precompute_excitation_pairs_excludes_high_excitations():
+    """Pairs with >2 total excitations are excluded."""
+    # 4 determinants: all 4 strings differ from each other in 0-2 orbitals
+    alpha = np.array([0b0011, 0b0101, 0b1001, 0b0110], dtype=np.int64)
+    beta = np.array([0b0011, 0b0011, 0b0011, 0b0011], dtype=np.int64)
+    rows, cols, nexc = _precompute_excitation_pairs(alpha, beta)
+    assert np.all(nexc <= 2)
+    # (0,0) is 0 excitations, must be present
+    pair_set = set(zip(rows.tolist(), cols.tolist()))
+    assert (0, 0) in pair_set
