@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Spin-flip ORMAS-CI (SF-ORMAS) implementation
+  - `SFORMASConfig` and `SFRASConfig` configuration classes
+  - `SFORMASFCISolver` PySCF fcisolver for spin-flip calculations
+  - `spinflip.py` module for SF determinant enumeration and reference analysis
+  - Single and double spin-flip support
+  - Multi-root excited state calculations with spin diagnostics
+  - CASSCF orbital optimization compatibility
+- SF-ORMAS example scripts: H2 dissociation, ethylene torsion, TMM singlet-triplet gap
+- SF-ORMAS + QDK/Chemistry integration for quantum resource estimation
+- Comprehensive SF-ORMAS documentation: theory, design, recipes, QDK integration
+- SF-ORMAS Jupyter notebook tutorial
+- SF-ORMAS benchmark scripts (classical and QDK quantum)
+
 ## [0.3.0] - 2026-03-28
 
 ### Changed
