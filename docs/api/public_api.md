@@ -6,11 +6,17 @@ All are importable directly from `pyscf.ormas_ci`:
 ```python
 from pyscf.ormas_ci import (
     ORMASFCISolver,
+    SFORMASFCISolver,
     ORMASConfig,
     RASConfig,
+    SFORMASConfig,
+    SFRASConfig,
     Subspace,
     build_determinant_list,
     count_determinants,
+    generate_sf_determinants,
+    count_sf_determinants,
+    validate_reference_consistency,
 )
 ```
 
@@ -34,6 +40,17 @@ primarily called by PySCF internals rather than by user code directly.
 
 ---
 
+## Spin-Flip Solver
+
+```{autoclass} pyscf.ormas_ci.SFORMASFCISolver
+:members: __init__, kernel
+```
+
+`SFORMASFCISolver` inherits all methods from {class}`~pyscf.ormas_ci.ORMASFCISolver`
+including `make_rdm1`, `make_rdm12`, `spin_square`, and all PySCF compatibility methods.
+
+---
+
 ## Configuration
 
 ```{autoclass} pyscf.ormas_ci.subspaces.Subspace
@@ -48,6 +65,14 @@ primarily called by PySCF internals rather than by user code directly.
 :members:
 ```
 
+```{autoclass} pyscf.ormas_ci.subspaces.SFORMASConfig
+:members:
+```
+
+```{autoclass} pyscf.ormas_ci.subspaces.SFRASConfig
+:members:
+```
+
 ---
 
 ## Determinant Utilities
@@ -59,4 +84,17 @@ primarily called by PySCF internals rather than by user code directly.
 ```
 
 ```{autofunction} pyscf.ormas_ci.determinants.casci_determinant_count
+```
+
+---
+
+## Spin-Flip Utilities
+
+```{autofunction} pyscf.ormas_ci.spinflip.generate_sf_determinants
+```
+
+```{autofunction} pyscf.ormas_ci.spinflip.count_sf_determinants
+```
+
+```{autofunction} pyscf.ormas_ci.spinflip.validate_reference_consistency
 ```
