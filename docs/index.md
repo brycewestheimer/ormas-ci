@@ -45,6 +45,7 @@ design/future
 
 integration/pyscf_casci
 integration/qdk_chemistry
+integration/sf_qdk
 integration/forte_comparison
 ```
 
